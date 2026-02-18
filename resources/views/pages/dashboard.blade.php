@@ -105,9 +105,30 @@
                     {{ __('ui.dashboard.no_votes') }}
                 </p>
             @else
-                <div class="relative">
-                    <div class="pointer-events-none absolute inset-y-0 right-0 z-10 w-8 bg-gradient-to-l from-white dark:from-sand-900 sm:hidden"></div>
-                <div class="overflow-x-auto">
+                {{-- Mobile: card layout --}}
+                <div class="divide-y divide-sand-100 dark:divide-sand-800 sm:hidden">
+                    @foreach ($latestInitiatives as $initiative)
+                        <div class="space-y-2 px-4 py-3">
+                            <div class="flex items-start justify-between gap-2">
+                                <p class="min-w-0 truncate text-sm font-medium text-sand-900 dark:text-sand-100">{{ $initiative->title }}</p>
+                                <x-status-badge :status="$initiative->status" size="xs" class="shrink-0" />
+                            </div>
+                            <div class="flex items-center justify-between text-xs text-sand-500 dark:text-sand-400">
+                                <span class="truncate">
+                                    @if ($initiative->author_category === 'government')
+                                        <x-government-badge />
+                                    @else
+                                        {{ $initiative->author_label ?? __('ui.author_type.Other') }}
+                                    @endif
+                                </span>
+                                <span class="shrink-0">{{ $initiative->final_vote_date->format('d/m/Y') }}</span>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+
+                {{-- Desktop: table layout --}}
+                <div class="hidden sm:block">
                     <table class="w-full text-left text-sm">
                         <thead class="border-b border-sand-100 bg-sand-50 dark:border-sand-800 dark:bg-sand-950">
                             <tr>
@@ -141,7 +162,6 @@
                             @endforeach
                         </tbody>
                     </table>
-                </div>
                 </div>
             @endif
         </div>

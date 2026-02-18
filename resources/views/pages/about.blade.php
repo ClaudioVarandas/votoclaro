@@ -63,7 +63,9 @@
                 {{ __('ui.about.contact_title') }}
             </h2>
             <p class="mt-3 leading-relaxed text-sand-700 dark:text-sand-300">
-                {{ __('ui.about.contact_body') }}
+                {!! __('ui.about.contact_body', [
+                    'github_link' => '<a href="https://github.com/ClaudioVarandas/votoclaro" target="_blank" rel="noopener noreferrer" class="font-medium text-republic-600 underline decoration-republic-300 underline-offset-2 transition-colors hover:text-republic-700 dark:text-republic-400 dark:decoration-republic-700 dark:hover:text-republic-300">GitHub</a>',
+                ]) !!}
             </p>
         </section>
     </article>

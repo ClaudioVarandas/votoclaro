@@ -151,7 +151,7 @@ return [
         'data_source_title' => 'Fonte dos dados',
         'data_source_body' => 'Todos os dados são obtidos a partir dos registos oficiais e abertos da Assembleia da República Portuguesa. A informação é atualizada periodicamente para refletir as votações mais recentes. O VotoClaro não altera nem edita os dados — apresenta-os de forma organizada e acessível.',
         'contact_title' => 'Contacto',
-        'contact_body' => 'O VotoClaro é um projeto de código aberto. Se tiver sugestões, encontrar erros ou quiser contribuir, entre em contacto através do repositório do projeto no GitHub.',
+        'contact_body' => 'O VotoClaro é um projeto de código aberto. Se tiver sugestões, encontrar erros ou quiser contribuir, entre em contacto através do repositório do projeto no :github_link.',
     ],
 
     // Misc
