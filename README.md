@@ -108,12 +108,13 @@ Official parliamentary JSON dataset from Assembleia da República.
 
 ## 🚀 Roadmap
 
-- [ ] Database schema
-- [ ] Import command
-- [ ] Dashboard
-- [ ] Law profile page
-- [ ] Party page
+- [x] Database schema
+- [x] Import command
+- [x] Dashboard
+- [x] Law profile page
+- [x] Party page
 - [ ] UI polish
+- [ ] more data ...
 
 ---
 
