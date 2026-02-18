@@ -1,0 +1,97 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&family=Source+Sans+3:ital,wght@0,200..900;1,200..900&display=swap');
+
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
+
+@custom-variant dark (&:where(.dark *));
+
+@theme {
+    --font-sans: 'Source Sans 3', ui-sans-serif, system-ui, sans-serif;
+    --font-serif: 'Fraunces', ui-serif, Georgia, serif;
+
+    /* Warm neutral palette */
+    --color-sand-50: #faf9f7;
+    --color-sand-100: #f3f1ed;
+    --color-sand-200: #e8e4dd;
+    --color-sand-300: #d5cfc4;
+    --color-sand-400: #b8b0a1;
+    --color-sand-500: #9a9082;
+    --color-sand-600: #7d7367;
+    --color-sand-700: #635b51;
+    --color-sand-800: #4a4439;
+    --color-sand-900: #332e26;
+    --color-sand-950: #1e1b16;
+
+    /* Republic green */
+    --color-republic-50: #f0f7f1;
+    --color-republic-100: #dbecdd;
+    --color-republic-200: #b9d9be;
+    --color-republic-300: #8cbf94;
+    --color-republic-400: #5da068;
+    --color-republic-500: #3d834b;
+    --color-republic-600: #2d6839;
+    --color-republic-700: #25532f;
+    --color-republic-800: #1f4327;
+    --color-republic-900: #1a3720;
+    --color-republic-950: #0d1f12;
+
+    /* Parliament red */
+    --color-parliament-50: #fdf3f3;
+    --color-parliament-100: #fce4e4;
+    --color-parliament-200: #facece;
+    --color-parliament-300: #f5abab;
+    --color-parliament-400: #ed7b7b;
+    --color-parliament-500: #e05252;
+    --color-parliament-600: #cc3333;
+    --color-parliament-700: #ab2828;
+    --color-parliament-800: #8e2424;
+    --color-parliament-900: #762424;
+    --color-parliament-950: #400e0e;
+
+    /* Azure blue (for government) */
+    --color-azure-50: #eff6ff;
+    --color-azure-100: #dbeafe;
+    --color-azure-200: #bfdbfe;
+    --color-azure-300: #93c5fd;
+    --color-azure-400: #60a5fa;
+    --color-azure-500: #3b82f6;
+    --color-azure-600: #2563eb;
+    --color-azure-700: #1d4ed8;
+    --color-azure-800: #1e40af;
+    --color-azure-900: #1e3a8a;
+    --color-azure-950: #172554;
+
+    /* Amber (for in progress) */
+    --color-amber-50: #fffbeb;
+    --color-amber-100: #fef3c7;
+    --color-amber-200: #fde68a;
+    --color-amber-300: #fcd34d;
+    --color-amber-400: #fbbf24;
+    --color-amber-500: #f59e0b;
+    --color-amber-600: #d97706;
+    --color-amber-700: #b45309;
+    --color-amber-800: #92400e;
+    --color-amber-900: #78350f;
+    --color-amber-950: #451a03;
+}
+
+@layer base {
+    *:focus-visible {
+        outline: 2px solid var(--color-republic-500);
+        outline-offset: 2px;
+        border-radius: 4px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
