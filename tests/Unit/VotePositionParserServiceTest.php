@@ -2,7 +2,6 @@
 
 namespace Tests\Unit;
 
-use App\Models\VotePosition;
 use App\Services\VotePositionParserService;
 use PHPUnit\Framework\TestCase;
 
@@ -77,13 +76,15 @@ class VotePositionParserServiceTest extends TestCase
         $this->assertCount(0, $result);
     }
 
-    public function test_parse_all_groups_and_deduplicates(): void
+    public function test_parse_all_groups_by_position_column(): void
     {
         $positions = collect([
-            (object) ['party' => 'PSD'],
-            (object) ['party' => 'PS'],
-            (object) ['party' => 'JPP Contra:PCP Abstenção:PSD'],
-            (object) ['party' => 'BE Abstenção:IL'],
+            (object) ['party' => 'PSD', 'position' => 'favor'],
+            (object) ['party' => 'PS', 'position' => 'favor'],
+            (object) ['party' => 'JPP', 'position' => 'favor'],
+            (object) ['party' => 'BE', 'position' => 'contra'],
+            (object) ['party' => 'PCP', 'position' => 'contra'],
+            (object) ['party' => 'IL', 'position' => 'abstencao'],
         ]);
 
         $result = $this->parser->parseAll($positions);
@@ -92,18 +93,36 @@ class VotePositionParserServiceTest extends TestCase
         $this->assertArrayHasKey('contra', $result);
         $this->assertArrayHasKey('abstencao', $result);
 
-        // PSD appears in favor (direct) and abstention (from JPP string) — both should be present
+        $this->assertEquals(['JPP', 'PS', 'PSD'], $result['favor']);
+        $this->assertEquals(['BE', 'PCP'], $result['contra']);
+        $this->assertEquals(['IL'], $result['abstencao']);
+    }
+
+    public function test_parse_all_deduplicates_parties(): void
+    {
+        $positions = collect([
+            (object) ['party' => 'PSD', 'position' => 'favor'],
+            (object) ['party' => 'PSD', 'position' => 'favor'],
+            (object) ['party' => 'BE', 'position' => 'contra'],
+        ]);
+
+        $result = $this->parser->parseAll($positions);
+
+        $this->assertCount(1, $result['favor']);
         $this->assertContains('PSD', $result['favor']);
-        $this->assertContains('PS', $result['favor']);
-        $this->assertContains('JPP', $result['favor']);
-        $this->assertContains('BE', $result['favor']);
+    }
 
-        $this->assertContains('PCP', $result['contra']);
+    public function test_parse_all_ignores_unknown_positions(): void
+    {
+        $positions = collect([
+            (object) ['party' => 'PSD', 'position' => 'favor'],
+            (object) ['party' => 'BE', 'position' => 'unknown'],
+        ]);
 
-        $this->assertContains('PSD', $result['abstencao']);
-        $this->assertContains('IL', $result['abstencao']);
+        $result = $this->parser->parseAll($positions);
 
-        // All arrays should be sorted
-        $this->assertEquals($result['favor'], collect($result['favor'])->sort()->values()->all());
+        $this->assertCount(1, $result['favor']);
+        $this->assertEmpty($result['contra']);
+        $this->assertEmpty($result['abstencao']);
     }
 }

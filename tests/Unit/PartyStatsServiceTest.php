@@ -46,10 +46,10 @@ class PartyStatsServiceTest extends TestCase
         VotePosition::factory()->create(['vote_id' => $vote1->id, 'party' => 'PS', 'position' => 'favor']);
 
         $vote2 = Vote::factory()->create(['initiative_id' => $initiative->id]);
-        VotePosition::factory()->create(['vote_id' => $vote2->id, 'party' => 'PS Contra:BE', 'position' => 'favor']);
+        VotePosition::factory()->create(['vote_id' => $vote2->id, 'party' => 'PS', 'position' => 'favor']);
 
         $vote3 = Vote::factory()->create(['initiative_id' => $initiative->id]);
-        VotePosition::factory()->create(['vote_id' => $vote3->id, 'party' => 'PSD Abstenção:PS', 'position' => 'favor']);
+        VotePosition::factory()->create(['vote_id' => $vote3->id, 'party' => 'PS', 'position' => 'abstencao']);
 
         $stats = $this->service->getPartyStats('PS');
 
@@ -59,11 +59,11 @@ class PartyStatsServiceTest extends TestCase
         $this->assertEquals(1, $stats['abstencao']);
     }
 
-    public function test_counts_contra_from_compound_string(): void
+    public function test_counts_contra_correctly(): void
     {
         $initiative = Initiative::factory()->create();
         $vote = Vote::factory()->create(['initiative_id' => $initiative->id]);
-        VotePosition::factory()->create(['vote_id' => $vote->id, 'party' => 'PS Contra:BE', 'position' => 'favor']);
+        VotePosition::factory()->create(['vote_id' => $vote->id, 'party' => 'BE', 'position' => 'contra']);
 
         $stats = $this->service->getPartyStats('BE');
 
@@ -72,15 +72,15 @@ class PartyStatsServiceTest extends TestCase
         $this->assertEquals(1, $stats['contra']);
     }
 
-    public function test_excludes_deputy_names(): void
+    public function test_excludes_non_main_parties(): void
     {
         $initiative = Initiative::factory()->create();
         $vote = Vote::factory()->create(['initiative_id' => $initiative->id]);
-        VotePosition::factory()->create(['vote_id' => $vote->id, 'party' => 'Pedro Nuno Santos (PS)', 'position' => 'favor']);
+        VotePosition::factory()->create(['vote_id' => $vote->id, 'party' => 'XPTO', 'position' => 'favor']);
 
-        $stats = $this->service->getPartyStats('PS');
+        $stats = $this->service->getPartyStats('XPTO');
 
-        $this->assertEquals(0, $stats['total_votes']);
+        $this->assertNull($stats);
     }
 
     public function test_excludes_numbered_entries(): void
@@ -99,30 +99,28 @@ class PartyStatsServiceTest extends TestCase
         $govInitiative = Initiative::factory()->government()->create();
         $otherInitiative = Initiative::factory()->parliamentaryGroup('BE')->create();
 
-        $govVote1 = Vote::factory()->create(['initiative_id' => $govInitiative->id]);
-        VotePosition::factory()->create(['vote_id' => $govVote1->id, 'party' => 'PS', 'position' => 'favor']);
-
-        $govVote2 = Vote::factory()->create(['initiative_id' => $govInitiative->id]);
-        VotePosition::factory()->create(['vote_id' => $govVote2->id, 'party' => 'PS Contra:BE', 'position' => 'favor']);
+        $govVote = Vote::factory()->create(['initiative_id' => $govInitiative->id]);
+        VotePosition::factory()->create(['vote_id' => $govVote->id, 'party' => 'PS', 'position' => 'favor']);
 
         $otherVote = Vote::factory()->create(['initiative_id' => $otherInitiative->id]);
         VotePosition::factory()->create(['vote_id' => $otherVote->id, 'party' => 'PS', 'position' => 'favor']);
 
         $stats = $this->service->getPartyStats('PS');
 
-        // PS voted favor on 2 government votes out of 2 government votes = 100%
+        // PS voted favor on 1 government vote out of 1 government vote = 100%
         $this->assertEquals(100.0, $stats['government_alignment']);
     }
 
     public function test_government_alignment_partial(): void
     {
-        $govInitiative = Initiative::factory()->government()->create();
+        $govInitiative1 = Initiative::factory()->government()->create();
+        $govInitiative2 = Initiative::factory()->government()->create();
 
-        $govVote1 = Vote::factory()->create(['initiative_id' => $govInitiative->id]);
+        $govVote1 = Vote::factory()->create(['initiative_id' => $govInitiative1->id]);
         VotePosition::factory()->create(['vote_id' => $govVote1->id, 'party' => 'PSD', 'position' => 'favor']);
 
-        $govVote2 = Vote::factory()->create(['initiative_id' => $govInitiative->id]);
-        VotePosition::factory()->create(['vote_id' => $govVote2->id, 'party' => 'CH Contra:PSD', 'position' => 'favor']);
+        $govVote2 = Vote::factory()->create(['initiative_id' => $govInitiative2->id]);
+        VotePosition::factory()->create(['vote_id' => $govVote2->id, 'party' => 'PSD', 'position' => 'contra']);
 
         $stats = $this->service->getPartyStats('PSD');
 
@@ -134,14 +132,14 @@ class PartyStatsServiceTest extends TestCase
     {
         $initiative = Initiative::factory()->create();
 
-        $vote1 = Vote::factory()->create(['initiative_id' => $initiative->id, 'date' => '2025-03-15']);
+        $vote1 = Vote::factory()->create(['initiative_id' => $initiative->id, 'date' => '2025-03-15', 'is_latest' => true]);
         VotePosition::factory()->create(['vote_id' => $vote1->id, 'party' => 'PS', 'position' => 'favor']);
 
-        $vote2 = Vote::factory()->create(['initiative_id' => $initiative->id, 'date' => '2025-01-10']);
+        $vote2 = Vote::factory()->create(['initiative_id' => $initiative->id, 'date' => '2025-01-10', 'is_latest' => true]);
         VotePosition::factory()->create(['vote_id' => $vote2->id, 'party' => 'PS', 'position' => 'favor']);
 
-        $vote3 = Vote::factory()->create(['initiative_id' => $initiative->id, 'date' => '2025-02-20']);
-        VotePosition::factory()->create(['vote_id' => $vote3->id, 'party' => 'PS Contra:BE', 'position' => 'favor']);
+        $vote3 = Vote::factory()->create(['initiative_id' => $initiative->id, 'date' => '2025-02-20', 'is_latest' => true]);
+        VotePosition::factory()->create(['vote_id' => $vote3->id, 'party' => 'PS', 'position' => 'contra']);
 
         $trend = $this->service->getMonthlyTrend('PS');
 
@@ -176,10 +174,10 @@ class PartyStatsServiceTest extends TestCase
         VotePosition::factory()->create(['vote_id' => $vote1->id, 'party' => 'IL', 'position' => 'favor']);
 
         $vote2 = Vote::factory()->create(['initiative_id' => $initiative->id]);
-        VotePosition::factory()->create(['vote_id' => $vote2->id, 'party' => 'BE Contra:IL', 'position' => 'favor']);
+        VotePosition::factory()->create(['vote_id' => $vote2->id, 'party' => 'IL', 'position' => 'contra']);
 
         $vote3 = Vote::factory()->create(['initiative_id' => $initiative->id]);
-        VotePosition::factory()->create(['vote_id' => $vote3->id, 'party' => 'PSD Abstenção:IL', 'position' => 'favor']);
+        VotePosition::factory()->create(['vote_id' => $vote3->id, 'party' => 'IL', 'position' => 'abstencao']);
 
         $stats = $this->service->getPartyStats('IL');
 

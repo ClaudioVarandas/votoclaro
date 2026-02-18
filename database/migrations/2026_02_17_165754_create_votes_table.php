@@ -17,12 +17,15 @@ return new class extends Migration
             $table->date('date')->nullable();
             $table->string('result')->nullable();
             $table->boolean('unanimous')->default(false);
+            $table->boolean('is_latest')->default(false)->index();
             $table->timestamps();
 
             $table->foreign('initiative_id')
                 ->references('id')
                 ->on('initiatives')
                 ->onDelete('cascade');
+
+            $table->index(['initiative_id', 'is_latest']);
         });
     }
 

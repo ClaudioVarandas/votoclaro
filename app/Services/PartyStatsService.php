@@ -65,77 +65,56 @@ class PartyStatsService
     {
         $acronym = strtoupper($acronym);
 
-        return Cache::remember("party_stats.trend.{$acronym}", 3600, function () use ($acronym) {
-            $positions = VotePosition::query()
-                ->join('votes', 'vote_positions.vote_id', '=', 'votes.id')
-                ->whereNotNull('votes.date')
-                ->select('vote_positions.party', 'vote_positions.vote_id', 'votes.date')
-                ->get();
+        $positions = VotePosition::query()
+            ->join('votes', 'vote_positions.vote_id', '=', 'votes.id')
+            ->where('vote_positions.party', $acronym)
+            ->where('votes.is_latest', true) // important
+            ->whereNotNull('votes.date')
+            ->select('vote_positions.vote_id', 'vote_positions.position', 'votes.date')
+            ->get();
 
-            $monthly = [];
+        $monthly = [];
 
-            foreach ($positions as $position) {
-                $entries = $this->parser->parse($position->party);
+        foreach ($positions as $position) {
+            $month = substr($position->date, 0, 7);
 
-                foreach ($entries as $entry) {
-                    if ($entry['party'] !== $acronym) {
-                        continue;
-                    }
-
-                    $month = substr($position->date, 0, 7);
-                    $key = $position->vote_id . '-' . $entry['position'];
-
-                    if (! isset($monthly[$month])) {
-                        $monthly[$month] = ['month' => $month, 'favor' => 0, 'contra' => 0, 'abstencao' => 0, 'total' => 0, '_seen' => []];
-                    }
-
-                    $voteKey = $position->vote_id . '-' . $entry['position'];
-                    if (! in_array($voteKey, $monthly[$month]['_seen'], true)) {
-                        $monthly[$month][$entry['position']]++;
-                        $monthly[$month]['total']++;
-                        $monthly[$month]['_seen'][] = $voteKey;
-                    }
-                }
+            if (! isset($monthly[$month])) {
+                $monthly[$month] = [
+                    'month' => $month,
+                    'favor' => 0,
+                    'contra' => 0,
+                    'abstencao' => 0,
+                    'total' => 0,
+                ];
             }
 
-            ksort($monthly);
+            $monthly[$month][$position->position]++;
+            $monthly[$month]['total']++;
+        }
 
-            return array_values(array_map(function ($item) {
-                unset($item['_seen']);
+        ksort($monthly);
 
-                return $item;
-            }, $monthly));
-        });
+        return array_values($monthly);
     }
 
     /**
-     * Parse all vote positions and return a flat collection of parsed entries with vote metadata.
+     * Parse all vote positions and return a flat collection
      *
      * @return Collection<int, array{vote_id: string, party: string, position: string, is_government: bool}>
      */
     private function buildParsedPositions(): Collection
     {
-        $positions = VotePosition::query()
-            ->select('vote_id', 'party')
-            ->get();
-
-        $parsed = collect();
-
-        foreach ($positions as $position) {
-            $entries = $this->parser->parse($position->party);
-
-            foreach ($entries as $entry) {
-                if (in_array($entry['party'], self::MAIN_PARTIES, true)) {
-                    $parsed->push([
-                        'vote_id' => $position->vote_id,
-                        'party' => $entry['party'],
-                        'position' => $entry['position'],
-                    ]);
-                }
-            }
-        }
-
-        return $parsed;
+        return VotePosition::query()
+            ->select('vote_id', 'party', 'position')
+            ->get()
+            ->filter(fn ($row) => in_array($row->party, self::MAIN_PARTIES, true))
+            ->map(function ($row) {
+                return [
+                    'vote_id' => $row->vote_id,
+                    'party' => $row->party,
+                    'position' => $row->position,
+                ];
+            });
     }
 
     /**

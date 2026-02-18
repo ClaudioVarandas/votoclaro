@@ -207,7 +207,7 @@
                                 </div>
                                 @if ($voteData['vote']->result)
                                     <span class="text-sm font-medium text-sand-600 dark:text-sand-400">
-                                        {{ __('ui.vote_result.' . $voteData['vote']->result) }}
+                                        {{ __('ui.vote_result.' . $voteData['vote']->result->value) }}
                                     </span>
                                 @endif
                             </div>

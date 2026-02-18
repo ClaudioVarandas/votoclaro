@@ -37,6 +37,7 @@ return [
 
     'parliament' => [
         'json_url' => env('PARLIAMENT_JSON_URL'),
+        'base_info_url' => env('PARLIAMENT_BASE_INFO_URL'),
     ],
 
 ];

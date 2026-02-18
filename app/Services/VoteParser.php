@@ -2,22 +2,24 @@
 
 namespace App\Services;
 
+use App\Models\Party;
+
 class VoteParser
 {
     public function parse(string $detail): array
     {
         $positions = [];
 
-        // Normalize line breaks
+        // Convert <br> to newline
         $detail = preg_replace('/<br\s*\/?>/i', "\n", $detail);
 
-        // Remove all HTML tags
+        // Remove HTML
         $clean = strip_tags($detail);
 
-        // Normalize spacing
-        $clean = trim(preg_replace('/\s+/', ' ', $clean));
+        // Normalize spaces but KEEP line breaks
+        $clean = preg_replace('/[ \t]+/', ' ', $clean);
+        $clean = trim($clean);
 
-        // Split into logical lines
         $lines = explode("\n", $clean);
 
         foreach ($lines as $line) {
@@ -63,7 +65,11 @@ class VoteParser
             // Remove accidental trailing punctuation
             $party = rtrim($party, '.;');
 
-            $positions[$party] = $type;
+            $valid = Party::pluck('acronym')->toArray();
+            if (in_array($party, $valid, true)) {
+                $positions[$party] = $type;
+            }
+
         }
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\VoteResult;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -21,13 +22,16 @@ class Vote extends Model
         'date',
         'result',
         'unanimous',
+        'is_latest',
     ];
 
     protected function casts(): array
     {
         return [
             'date' => 'date',
+            'result' => VoteResult::class,
             'unanimous' => 'boolean',
+            'is_latest' => 'boolean',
         ];
     }
 

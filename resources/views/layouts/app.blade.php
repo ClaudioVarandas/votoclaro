@@ -126,7 +126,7 @@
 
             {{-- Bottom bar --}}
             <div class="mt-10 flex flex-col items-center justify-between gap-2 border-t border-sand-200 pt-6 text-xs text-sand-500 sm:flex-row dark:border-sand-800 dark:text-sand-500">
-                <p>&copy; {{ date('Y') }} VotoClaro. {{ __('ui.footer.rights') }}</p>
+                <p>&copy; {{ date('Y') }} VotoClaro. {{ __('ui.footer.rights') }}. {{ __('ui.footer.developed_by') }}</p>
                 <div class="flex items-center gap-3">
                     <p>{{ __('ui.footer.attribution') }}</p>
                     <a href="https://github.com/ClaudioVarandas/votoclaro" target="_blank" rel="noopener noreferrer" class="text-sand-400 transition-colors hover:text-sand-600 dark:text-sand-600 dark:hover:text-sand-400" aria-label="GitHub">

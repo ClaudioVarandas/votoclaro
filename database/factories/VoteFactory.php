@@ -21,6 +21,7 @@ class VoteFactory extends Factory
             'date' => fake()->dateTimeBetween('-1 year', 'now'),
             'result' => fake()->randomElement(['Aprovado', 'Rejeitado', 'Prejudicado']),
             'unanimous' => fake()->boolean(10),
+            'is_latest' => true,
         ];
     }
 }

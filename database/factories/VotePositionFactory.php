@@ -18,7 +18,7 @@ class VotePositionFactory extends Factory
         return [
             'vote_id' => Vote::factory(),
             'party' => fake()->randomElement(['PSD', 'PS', 'CH', 'IL', 'BE', 'PCP', 'L', 'PAN', 'CDS-PP', 'JPP']),
-            'position' => 'favor',
+            'position' => fake()->randomElement(['favor', 'contra', 'abstencao']),
         ];
     }
 }

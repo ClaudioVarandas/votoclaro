@@ -62,14 +62,13 @@ class VotePositionParserService
         ];
 
         foreach ($votePositions as $votePosition) {
-            $entries = $this->parse($votePosition->party);
+            $position = $votePosition->position;
 
-            foreach ($entries as $entry) {
-                $grouped[$entry['position']][] = $entry['party'];
+            if (isset($grouped[$position])) {
+                $grouped[$position][] = $votePosition->party;
             }
         }
 
-        // Deduplicate and sort alphabetically
         foreach ($grouped as $position => $parties) {
             $grouped[$position] = collect($parties)->unique()->sort()->values()->all();
         }

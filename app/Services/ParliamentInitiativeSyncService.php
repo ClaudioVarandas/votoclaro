@@ -2,17 +2,16 @@
 
 namespace App\Services;
 
-use Exception;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
 use App\Models\Initiative;
+use Carbon\Carbon;
+use Exception;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Http;
 
 class ParliamentInitiativeSyncService
 {
-    public function __construct(private VoteParser $voteParser)
-    {
-    }
+    public function __construct(private VoteParser $voteParser) {}
 
     public function sync(): void
     {
@@ -20,13 +19,22 @@ class ParliamentInitiativeSyncService
 
         $response = Http::get($url);
 
-        if (!$response->successful()) {
+        if (! $response->successful()) {
             throw new Exception('Failed to fetch parliamentary JSON');
         }
 
         $data = $response->json();
 
+        if (app()->isLocal()) {
+            $dir = base_path('data/initiatives');
+            File::ensureDirectoryExists($dir);
+        }
+
         foreach ($data as $item) {
+            if (app()->isLocal()) {
+                File::put($dir.'/'.$item['IniId'].'.json', json_encode($item, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+            }
+
             DB::transaction(function () use ($item) {
                 $this->syncInitiative($item);
             });
@@ -58,12 +66,11 @@ class ParliamentInitiativeSyncService
             $daysToApproval = $entryDate?->diffInDays($finalVoteDate);
         }
 
-
         $initiative = Initiative::updateOrCreate(
             ['id' => $initiativeId],
             [
                 'title' => $item['IniTitulo'],
-                //'author_type' => $author['category'],
+                // 'author_type' => $author['category'],
                 'status' => $status,
                 'entry_date' => $entryDate,
                 'final_vote_date' => $finalVoteDate,
@@ -85,7 +92,7 @@ class ParliamentInitiativeSyncService
         $votes = [];
 
         foreach ($events as $event) {
-            if (!empty($event['Votacao'])) {
+            if (! empty($event['Votacao'])) {
                 foreach ($event['Votacao'] as $vote) {
                     $votes[] = $vote;
                 }
@@ -98,7 +105,7 @@ class ParliamentInitiativeSyncService
 
         usort($votes, function ($a, $b) {
             return Carbon::parse($b['data'])
-                    ->timestamp <=> Carbon::parse($a['data'])->timestamp;
+                ->timestamp <=> Carbon::parse($a['data'])->timestamp;
         });
 
         return $votes[0];
@@ -106,7 +113,6 @@ class ParliamentInitiativeSyncService
 
     private function syncVotes(Initiative $initiative, array $events): void
     {
-        // Delete all existing votes for clean resync
         $initiative->votes()->delete();
 
         foreach ($events as $event) {
@@ -121,20 +127,31 @@ class ParliamentInitiativeSyncService
                     'id' => $voteData['id'],
                     'date' => $voteData['data'],
                     'result' => $voteData['resultado'],
-                    'unanimous' => $voteData['unanime'] === 'unanime'
+                    'unanimous' => $voteData['unanime'] === 'unanime',
+                    'is_latest' => false,
                 ]);
 
-                if (!empty($voteData['detalhe'])) {
+                if (! empty($voteData['detalhe'])) {
                     $positions = $this->voteParser->parse($voteData['detalhe']);
 
                     foreach ($positions as $party => $position) {
                         $vote->positions()->create([
                             'party' => $party,
-                            'position' => $position
+                            'position' => $position,
                         ]);
                     }
                 }
             }
+        }
+
+        // 🔥 Mark latest vote via DB
+        $latestVote = $initiative->votes()
+            ->orderByDesc('date')
+            ->first();
+
+        if ($latestVote) {
+            $initiative->votes()->update(['is_latest' => false]);
+            $latestVote->update(['is_latest' => true]);
         }
     }
 
@@ -145,11 +162,11 @@ class ParliamentInitiativeSyncService
 
         foreach ($events as $event) {
 
-            if (!empty($event['DataFase'])) {
+            if (! empty($event['DataFase'])) {
 
                 $date = Carbon::parse($event['DataFase']);
 
-                if (!$earliest || $date->lt($earliest)) {
+                if (! $earliest || $date->lt($earliest)) {
                     $earliest = $date;
                 }
 
@@ -168,29 +185,29 @@ class ParliamentInitiativeSyncService
     private function detectAuthor(array $item): array
     {
         // 1. Government
-        if (!empty($item['IniAutorOutros']['nome']) &&
+        if (! empty($item['IniAutorOutros']['nome']) &&
             $item['IniAutorOutros']['nome'] === 'Governo') {
             return [
                 'category' => 'government',
                 'party' => null,
-                'label' => 'Governo'
+                'label' => 'Governo',
             ];
         }
 
         // 2. Parliamentary Group
-        if (!empty($item['IniAutorGruposParlamentares'])) {
+        if (! empty($item['IniAutorGruposParlamentares'])) {
 
             $gp = $item['IniAutorGruposParlamentares'][0]['GP'] ?? null;
 
             return [
                 'category' => 'parliamentary_group',
                 'party' => $gp,
-                'label' => "Grupo Parlamentar {$gp}"
+                'label' => "Grupo Parlamentar {$gp}",
             ];
         }
 
         // 3. Deputies (individual MPs)
-        if (!empty($item['IniAutorDeputados'])) {
+        if (! empty($item['IniAutorDeputados'])) {
 
             $parties = collect($item['IniAutorDeputados'])
                 ->pluck('GP')
@@ -201,7 +218,7 @@ class ParliamentInitiativeSyncService
                 return [
                     'category' => 'mixed',
                     'party' => null,
-                    'label' => 'Iniciativa multipartidária'
+                    'label' => 'Iniciativa multipartidária',
                 ];
             }
 
@@ -210,7 +227,7 @@ class ParliamentInitiativeSyncService
             return [
                 'category' => 'deputies',
                 'party' => $gp,
-                'label' => "Deputados ({$gp})"
+                'label' => "Deputados ({$gp})",
             ];
         }
 
@@ -223,15 +240,14 @@ class ParliamentInitiativeSyncService
             return [
                 'category' => 'mixed',
                 'party' => null,
-                'label' => 'Iniciativa multipartidária'
+                'label' => 'Iniciativa multipartidária',
             ];
         }
 
         return [
             'category' => 'other',
             'party' => null,
-            'label' => 'Outros'
+            'label' => 'Outros',
         ];
     }
-
 }
