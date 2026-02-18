@@ -1,8 +1,18 @@
 @extends('layouts.app')
 
+@php
+    $govApprovalRate = $governmentStats->total > 0
+        ? number_format(($governmentStats->approved / $governmentStats->total) * 100, 1, ',', '.')
+        : '0';
+@endphp
+
 <x-seo-meta
     :title="__('ui.dashboard.title') . ' — VotoClaro'"
-    :description="__('ui.dashboard.description')"
+    :description="__('ui.dashboard.seo_description', [
+        'total' => number_format($totalInitiatives, 0, ',', '.'),
+        'approval_rate' => str_replace('.', ',', $approvalRate),
+        'gov_rate' => $govApprovalRate,
+    ])"
 />
 
 @section('content')

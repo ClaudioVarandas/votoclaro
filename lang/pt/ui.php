@@ -13,6 +13,7 @@ return [
     'dashboard' => [
         'title' => 'Painel Legislativo',
         'description' => 'Acompanhe as iniciativas legislativas da Assembleia da República Portuguesa.',
+        'seo_description' => 'Veja o dashboard atualizado: :total iniciativas, :approval_rate% aprovadas, :gov_rate% de sucesso do Governo. Últimas votações e mais. Saiba como votam os deputados.',
         'total_initiatives' => 'Total de Iniciativas',
         'approval_rate' => 'Taxa de Aprovação',
         'government_initiatives' => 'Iniciativas do Governo',
