@@ -2,7 +2,7 @@
     [
         'title' => 'Voto Claro — Transparência no Parlamento Português',
         'description' => '',
-        'ogImage' => 'https://votoclaro.pt/og-image.jpg',
+        'ogImage' => 'https://votoclaro.pt/og_image.jpg',
         'ogImageAlt' => 'Voto Claro: transparência legislativa em Portugal'
     ])
 
