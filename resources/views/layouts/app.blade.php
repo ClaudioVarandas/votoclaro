@@ -109,12 +109,12 @@
 
                 {{-- Information --}}
                 <div>
-                    <h3 class="text-sm font-semibold uppercase tracking-wider text-sand-500 dark:text-sand-400">{{ __('ui.footer.information') }}</h3>
+                    {{--<h3 class="text-sm font-semibold uppercase tracking-wider text-sand-500 dark:text-sand-400">{{ __('ui.footer.information') }}</h3>
                     <ul class="mt-4 space-y-2">
                         <li><span class="text-sm text-sand-400 dark:text-sand-600">{{ __('ui.footer.open_data') }}</span></li>
                         <li><span class="text-sm text-sand-400 dark:text-sand-600">{{ __('ui.footer.methodology') }}</span></li>
                         <li><span class="text-sm text-sand-400 dark:text-sand-600">{{ __('ui.footer.privacy') }}</span></li>
-                    </ul>
+                    </ul>--}}
                 </div>
 
                 {{-- About --}}
