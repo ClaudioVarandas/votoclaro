@@ -14,7 +14,8 @@ class PartyAuthoredInitiativesTest extends TestCase
 
     private function createPartyContext(string $party): void
     {
-        $initiative = Initiative::factory()->parliamentaryGroup($party)->create();
+        // Authored by the government, so it never counts among the party's own initiatives.
+        $initiative = Initiative::factory()->government()->create();
         $vote = Vote::factory()->create(['initiative_id' => $initiative->id, 'is_latest' => true]);
         VotePosition::factory()->create(['vote_id' => $vote->id, 'party' => $party, 'position' => 'favor']);
     }

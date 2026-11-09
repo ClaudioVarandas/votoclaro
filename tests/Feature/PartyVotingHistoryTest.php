@@ -14,7 +14,8 @@ class PartyVotingHistoryTest extends TestCase
 
     private function createVoteForParty(string $party, string $position = 'favor', array $voteOverrides = [], array $initiativeOverrides = []): VotePosition
     {
-        $initiative = Initiative::factory()->create($initiativeOverrides);
+        // Authored by the government, so it never appears in the party's authored section.
+        $initiative = Initiative::factory()->government()->create($initiativeOverrides);
         $vote = Vote::factory()->create(array_merge(['initiative_id' => $initiative->id, 'is_latest' => true], $voteOverrides));
 
         return VotePosition::factory()->create([
@@ -70,13 +71,13 @@ class PartyVotingHistoryTest extends TestCase
 
     public function test_only_latest_votes_are_shown(): void
     {
-        $initiative = Initiative::factory()->create(['title' => 'Visible Initiative']);
+        $initiative = Initiative::factory()->government()->create(['title' => 'Visible Initiative']);
         Vote::factory()->create(['initiative_id' => $initiative->id, 'is_latest' => false]);
         $latestVote = Vote::factory()->create(['initiative_id' => $initiative->id, 'is_latest' => true]);
 
         VotePosition::factory()->create(['vote_id' => $latestVote->id, 'party' => 'PS', 'position' => 'favor']);
 
-        $initiative2 = Initiative::factory()->create(['title' => 'Old Vote Initiative']);
+        $initiative2 = Initiative::factory()->government()->create(['title' => 'Old Vote Initiative']);
         $oldVote = Vote::factory()->create(['initiative_id' => $initiative2->id, 'is_latest' => false]);
         VotePosition::factory()->create(['vote_id' => $oldVote->id, 'party' => 'PS', 'position' => 'contra']);
 
