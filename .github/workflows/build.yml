@@ -1,0 +1,124 @@
+# Builds the release artifact that cv-forge verifies and deploys. Holds no deployment credentials.
+name: build
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  APPLICATION: votoclaro
+  WORKFLOW_PATH: .github/workflows/build.yml
+  RELEASE_DIR: ${{ github.workspace }}/../release
+  BUNDLE_DIR: ${{ github.workspace }}/../bundle
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version: "8.4"
+          coverage: none
+          tools: composer:v2
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "22"
+
+      - name: Install dependencies
+        run: |
+          composer install --no-interaction --no-progress --prefer-dist
+          npm ci
+
+      - name: Test
+        run: |
+          cp .env.example .env
+          php artisan key:generate --no-interaction
+          php artisan test
+          rm -f .env
+
+      - name: Build
+        run: |
+          npm run build
+          composer install --no-dev --no-interaction --no-progress --prefer-dist --optimize-autoloader
+
+      - name: Assemble release tree
+        run: |
+          set -euo pipefail
+          mkdir -p "$RELEASE_DIR"
+          rsync -a --delete \
+            --exclude='/.git*' \
+            --exclude='/.agents' \
+            --exclude='/.claude' \
+            --exclude='/CLAUDE.md' \
+            --exclude='/boost.json' \
+            --exclude='/data' \
+            --exclude='/docs' \
+            --exclude='/node_modules' \
+            --exclude='/phpunit.xml' \
+            --exclude='/public/hot' \
+            --exclude='/storage' \
+            --exclude='/tests' \
+            --exclude='.env' \
+            --exclude='.env.*' \
+            ./ "$RELEASE_DIR/"
+          test -f "$RELEASE_DIR/cv-forge.yml"
+
+      - name: Scan release tree for secrets
+        run: |
+          set -euo pipefail
+          version=8.30.1
+          sha=551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
+          archive="gitleaks_${version}_linux_x64.tar.gz"
+          curl -fsSLO "https://github.com/gitleaks/gitleaks/releases/download/v${version}/${archive}"
+          echo "${sha}  ${archive}" | sha256sum -c -
+          tar xzf "$archive" gitleaks
+          ./gitleaks dir "$RELEASE_DIR" --redact --no-banner
+          rm -f gitleaks "$archive"
+
+      - name: Package release
+        run: |
+          set -euo pipefail
+          export LC_ALL=C
+          epoch="$(git log -1 --format=%ct)"
+          chmod -R u=rwX,go=rX "$RELEASE_DIR"
+          mkdir -p "$BUNDLE_DIR"
+          tar --sort=name --mtime="@${epoch}" --owner=0 --group=0 --numeric-owner \
+            --hard-dereference --format=gnu -C "$RELEASE_DIR" -cf - . \
+            | gzip -9 -n > "$BUNDLE_DIR/release.tar.gz"
+          sha="$(sha256sum "$BUNDLE_DIR/release.tar.gz" | cut -d' ' -f1)"
+          jq -n \
+            --arg application "$APPLICATION" \
+            --arg sha "$sha" \
+            --arg repository "$GITHUB_REPOSITORY" \
+            --arg workflow "$WORKFLOW_PATH" \
+            --argjson run_id "$GITHUB_RUN_ID" \
+            --argjson run_attempt "$GITHUB_RUN_ATTEMPT" \
+            --arg commit "$GITHUB_SHA" \
+            --arg branch "$GITHUB_REF_NAME" \
+            --arg built_at "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            '{version: 1, application: $application, artifact_sha256: $sha,
+              source: {provider: "github", repository: $repository, workflow: $workflow,
+                       run_id: $run_id, run_attempt: $run_attempt, commit: $commit, branch: $branch},
+              built_at: $built_at}' \
+            > "$BUNDLE_DIR/build.json"
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: cv-forge-release
+          path: ${{ env.BUNDLE_DIR }}
+          if-no-files-found: error
+          retention-days: 3
+          compression-level: 0

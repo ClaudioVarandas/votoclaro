@@ -1,0 +1,37 @@
+# Deployment manifest for cv-forge.
+version: 1
+application: votoclaro
+
+shared:
+  files:
+    - .env
+  directories:
+    - storage
+
+hooks:
+  before_activate:
+    # Fails early on a PHP mismatch, before any migration runs.
+    - name: smoke
+      run: [php, artisan, --version]
+      timeout_seconds: 30
+    - name: storage-link
+      run: [php, artisan, storage:link]
+      timeout_seconds: 30
+    # Must stay backward compatible: rollback restores code, not data.
+    - name: migrate
+      run: [php, artisan, migrate, --force]
+      timeout_seconds: 600
+    - name: optimize
+      run: [php, artisan, optimize]
+      timeout_seconds: 120
+
+reload:
+  # Required: production runs with opcache.validate_timestamps=0.
+  - php8.4-fpm
+
+environments:
+  production:
+    health_check:
+      type: http
+      url: https://votoclaro.pt/up
+      timeout_seconds: 60
