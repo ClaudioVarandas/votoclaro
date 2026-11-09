@@ -15,8 +15,6 @@ concurrency:
 env:
   APPLICATION: votoclaro
   WORKFLOW_PATH: .github/workflows/build.yml
-  RELEASE_DIR: ${{ github.workspace }}/../release
-  BUNDLE_DIR: ${{ github.workspace }}/../bundle
 
 jobs:
   build:
@@ -56,6 +54,13 @@ jobs:
       - name: Install production dependencies
         run: |
           composer install --no-dev --no-interaction --no-progress --prefer-dist --optimize-autoloader
+
+      # Outside the workspace, in a path upload-artifact accepts: it refuses '..'. The runner
+      # context is not available in workflow-level env, so the step exports them.
+      - name: Choose working directories
+        run: |
+          echo "RELEASE_DIR=$RUNNER_TEMP/release" >> "$GITHUB_ENV"
+          echo "BUNDLE_DIR=$RUNNER_TEMP/bundle" >> "$GITHUB_ENV"
 
       - name: Assemble release tree
         run: |
