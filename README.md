@@ -125,3 +125,7 @@ It is a clarity tool.
 
 Transparency builds trust.
 Clarity builds citizenship.
+
+## Deployment
+
+Releases are built by GitHub Actions and deployed with cv-forge.
