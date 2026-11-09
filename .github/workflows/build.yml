@@ -42,6 +42,10 @@ jobs:
           composer install --no-interaction --no-progress --prefer-dist
           npm ci
 
+      # Before the tests: pages that use @vite need public/build/manifest.json.
+      - name: Build assets
+        run: npm run build
+
       - name: Test
         run: |
           cp .env.example .env
@@ -49,9 +53,8 @@ jobs:
           php artisan test
           rm -f .env
 
-      - name: Build
+      - name: Install production dependencies
         run: |
-          npm run build
           composer install --no-dev --no-interaction --no-progress --prefer-dist --optimize-autoloader
 
       - name: Assemble release tree
