@@ -1,0 +1,9 @@
+# Used by the build workflow to scan the release tree. Keep every exception narrow:
+# one rule, one file, and the reason.
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "MIME type table in symfony/mime, matched by generic-api-key; not a secret"
+targetRules = ["generic-api-key"]
+paths = ['''(^|/)vendor/symfony/mime/MimeTypes\.php$''']

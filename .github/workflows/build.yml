@@ -88,7 +88,9 @@ jobs:
           curl -fsSLO "https://github.com/gitleaks/gitleaks/releases/download/v${version}/${archive}"
           echo "${sha}  ${archive}" | sha256sum -c -
           tar xzf "$archive" gitleaks
-          ./gitleaks dir "$RELEASE_DIR" --redact --no-banner
+          # .gitleaks.toml extends the default rules with narrow, documented exceptions.
+          # It stays out of the release tree, which excludes /.git*.
+          ./gitleaks dir "$RELEASE_DIR" --config .gitleaks.toml --redact --no-banner --verbose
           rm -f gitleaks "$archive"
 
       - name: Package release
