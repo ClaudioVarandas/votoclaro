@@ -129,3 +129,5 @@ Clarity builds citizenship.
 ## Deployment
 
 Releases are built by GitHub Actions and deployed with cv-forge.
+The deployment manifest is `cv-forge.yml`: shared files, hooks, the PHP-FPM reload, and the
+health check at `/up`.
