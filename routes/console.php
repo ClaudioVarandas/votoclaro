@@ -8,6 +8,7 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
+// Not in the background: production runs the scheduler as a systemd oneshot service, which
+// stops every process it started once schedule:run returns.
 Schedule::command('ar:initiatives:import')
-    ->dailyAt('01:30')
-    ->runInBackground();
+    ->dailyAt('01:30');

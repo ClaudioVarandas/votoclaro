@@ -26,8 +26,9 @@ hooks:
       timeout_seconds: 120
 
 reload:
-  # Required: production runs with opcache.validate_timestamps=0.
-  - php8.4-fpm
+  # Required: production runs with opcache.validate_timestamps=0. votoclaro has its own
+  # PHP-FPM on production, run by its own user (cv-infra ADR 017).
+  - cv-php-fpm-votoclaro
 
 environments:
   production:
