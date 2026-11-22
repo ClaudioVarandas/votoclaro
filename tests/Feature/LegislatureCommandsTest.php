@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Initiative;
 use App\Models\Legislature;
 use App\Models\Party;
+use App\Services\ParliamentInitiativeSyncService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
@@ -126,10 +127,52 @@ class LegislatureCommandsTest extends TestCase
         ])]);
         $downloadsBefore = glob(sys_get_temp_dir().'/ar-initiatives-*');
 
-        $this->artisan('ar:initiatives:import')->assertSuccessful();
+        $this->artisan('ar:initiatives:import')
+            ->expectsOutputToContain('Importing...')
+            ->expectsOutputToContain('Sync completed: 3 initiatives imported.')
+            ->assertSuccessful();
 
         $this->assertEqualsCanonicalizing(['900001', '900002', '900003'], Initiative::query()->pluck('id')->all());
         $this->assertSame($downloadsBefore, glob(sys_get_temp_dir().'/ar-initiatives-*'));
+    }
+
+    public function test_sync_reports_its_progress_through_the_file(): void
+    {
+        $legislature = Legislature::factory()->xvii()->create(['initiatives_url' => self::INITIATIVES_URL]);
+        Http::fake([self::INITIATIVES_URL => Http::response([
+            $this->initiative('900001'),
+            $this->initiative('900002'),
+        ])]);
+        $fileSize = null;
+        $progress = [];
+
+        $imported = app(ParliamentInitiativeSyncService::class)->sync(
+            $legislature,
+            function (int $size) use (&$fileSize): void {
+                $fileSize = $size;
+            },
+            function (int $bytesRead, int $count) use (&$progress): void {
+                $progress[] = [$bytesRead, $count];
+            },
+        );
+
+        $this->assertSame(2, $imported);
+        $this->assertGreaterThan(0, $fileSize);
+        $this->assertSame([1, 2], array_column($progress, 1));
+        $this->assertGreaterThan(0, $progress[0][0]);
+        $this->assertGreaterThan($progress[0][0], $progress[1][0]);
+        $this->assertLessThanOrEqual($fileSize, $progress[1][0]);
+    }
+
+    public function test_sync_without_progress_callbacks_still_counts_the_initiatives(): void
+    {
+        $legislature = Legislature::factory()->xvii()->create(['initiatives_url' => self::INITIATIVES_URL]);
+        Http::fake([self::INITIATIVES_URL => Http::response([
+            $this->initiative('900001'),
+            $this->initiative('900002'),
+        ])]);
+
+        $this->assertSame(2, app(ParliamentInitiativeSyncService::class)->sync($legislature));
     }
 
     public function test_initiatives_import_removes_the_download_when_it_fails(): void

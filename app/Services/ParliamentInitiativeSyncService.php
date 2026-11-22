@@ -6,6 +6,7 @@ use App\Enums\InitiativeStatus;
 use App\Models\Initiative;
 use App\Models\Legislature;
 use Carbon\Carbon;
+use Closure;
 use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
@@ -26,8 +27,12 @@ class ParliamentInitiativeSyncService
     /**
      * The file of a legislature grows past 100 MB, more than json_decode fits in memory, so it is
      * downloaded to disk and read one initiative at a time.
+     *
+     * @param  (Closure(int $fileSize): void)|null  $onDownloaded
+     * @param  (Closure(int $bytesRead, int $imported): void)|null  $onImported  called after each initiative
+     * @return int the number of initiatives imported
      */
-    public function sync(Legislature $legislature): void
+    public function sync(Legislature $legislature, ?Closure $onDownloaded = null, ?Closure $onImported = null): int
     {
         if (! $legislature->initiatives_url) {
             throw new Exception("The {$legislature->sigla} legislature has no initiatives URL.");
@@ -44,12 +49,17 @@ class ParliamentInitiativeSyncService
                 throw new Exception('Failed to fetch parliamentary JSON');
             }
 
+            $onDownloaded?->__invoke(filesize($path));
+
             if (app()->isLocal()) {
                 $dir = base_path("data/{$legislature->sigla}/initiatives");
                 File::ensureDirectoryExists($dir);
             }
 
-            foreach (Items::fromFile($path, ['decoder' => new ExtJsonDecoder(true)]) as $item) {
+            $imported = 0;
+            $items = Items::fromFile($path, ['decoder' => new ExtJsonDecoder(true), 'debug' => $onImported !== null]);
+
+            foreach ($items as $item) {
                 if (app()->isLocal()) {
                     File::put($dir.'/'.$item['IniId'].'.json', json_encode($item, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
                 }
@@ -57,7 +67,12 @@ class ParliamentInitiativeSyncService
                 DB::transaction(function () use ($legislature, $item) {
                     $this->syncInitiative($legislature, $item);
                 });
+
+                $imported++;
+                $onImported?->__invoke($items->getPosition(), $imported);
             }
+
+            return $imported;
         } finally {
             File::delete($path);
         }
