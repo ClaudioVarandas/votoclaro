@@ -204,7 +204,7 @@
                     <h2 class="font-serif text-lg font-semibold text-sand-900 dark:text-sand-100">
                         {{ __('ui.dashboard.party_overview') }}
                     </h2>
-                    <a href="{{ route('parties.index') }}" class="text-sm font-medium text-republic-600 transition-colors hover:text-republic-700 dark:text-republic-400 dark:hover:text-republic-300">
+                    <a href="{{ $legislatureContext->route('parties.index') }}" class="text-sm font-medium text-republic-600 transition-colors hover:text-republic-700 dark:text-republic-400 dark:hover:text-republic-300">
                         {{ __('ui.dashboard.view_all') }} &rarr;
                     </a>
                 </div>
@@ -216,7 +216,7 @@
             </div>
             <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5">
                 @foreach ($partyStats as $stats)
-                    <a href="{{ route('parties.show', strtolower($stats['acronym'])) }}"
+                    <a href="{{ $legislatureContext->route('parties.show', strtolower($stats['acronym'])) }}"
                        class="group rounded-xl border border-sand-200 bg-white p-3 transition-all hover:border-republic-300 hover:shadow-md dark:border-sand-800 dark:bg-sand-900 dark:hover:border-republic-700">
                         <p class="text-center font-serif text-sm font-bold text-sand-900 group-hover:text-republic-700 dark:text-sand-100 dark:group-hover:text-republic-400">
                             {{ $stats['acronym'] }}
@@ -256,7 +256,7 @@
                 <h2 class="font-serif text-lg font-semibold text-sand-900 dark:text-sand-100">
                     {{ __('ui.dashboard.latest_votes') }}
                 </h2>
-                <a href="{{ route('initiatives.index') }}" class="text-sm font-medium text-republic-600 transition-colors hover:text-republic-700 dark:text-republic-400 dark:hover:text-republic-300">
+                <a href="{{ $legislatureContext->route('initiatives.index') }}" class="text-sm font-medium text-republic-600 transition-colors hover:text-republic-700 dark:text-republic-400 dark:hover:text-republic-300">
                     {{ __('ui.dashboard.view_all') }} &rarr;
                 </a>
             </div>

@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Initiative;
+use App\Models\Legislature;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -87,6 +88,8 @@ class InitiativeListingTest extends TestCase
 
     public function test_index_empty_state(): void
     {
+        Legislature::factory()->xvii()->withParties()->create();
+
         $response = $this->get(route('initiatives.index'));
 
         $response->assertStatus(200);

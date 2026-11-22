@@ -199,4 +199,10 @@ return [
     'government' => 'Governo',
     'days_average' => ':count dias em média',
     'days_average_unit' => 'dias em média',
+    'legislature' => [
+        'name' => ':sigla Legislatura',
+        'name_ongoing' => ':sigla Legislatura (em curso)',
+        'switcher_label' => 'Legislatura',
+        'closed_notice' => 'Está a ver a :sigla Legislatura (:start–:end), já terminada.',
+    ],
 ];

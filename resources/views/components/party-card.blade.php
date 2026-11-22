@@ -1,6 +1,6 @@
 @props(['stats'])
 
-<a href="{{ route('parties.show', strtolower($stats['acronym'])) }}"
+<a href="{{ $legislatureContext->route('parties.show', strtolower($stats['acronym'])) }}"
    {{ $attributes->class(['group block rounded-2xl border border-sand-200 bg-white p-5 transition-all hover:border-republic-300 hover:shadow-md dark:border-sand-800 dark:bg-sand-900 dark:hover:border-republic-700']) }}>
     <div class="flex items-center justify-between">
         <h3 class="font-serif text-lg font-bold text-sand-900 group-hover:text-republic-700 dark:text-sand-100 dark:group-hover:text-republic-400">

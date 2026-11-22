@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Initiative;
+use App\Models\Legislature;
 use App\Models\Vote;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
@@ -14,10 +15,11 @@ class DashboardService
     /**
      * @return array{totalInitiatives: int, approved: int, rejected: int, inProgress: int, approvalRate: float}
      */
-    public function getInitiativeOverview(): array
+    public function getInitiativeOverview(Legislature $legislature): array
     {
-        return Cache::remember('dashboard.initiative_overview', self::CACHE_TTL, function () {
+        return Cache::remember("dashboard.{$legislature->id}.initiative_overview", self::CACHE_TTL, function () use ($legislature) {
             $statusCounts = Initiative::query()
+                ->forLegislature($legislature)
                 ->selectRaw('status, COUNT(*) as count')
                 ->groupBy('status')
                 ->pluck('count', 'status');
@@ -37,10 +39,11 @@ class DashboardService
         });
     }
 
-    public function getGovernmentStats(): object
+    public function getGovernmentStats(Legislature $legislature): object
     {
-        return Cache::remember('dashboard.government_stats', self::CACHE_TTL, function () {
+        return Cache::remember("dashboard.{$legislature->id}.government_stats", self::CACHE_TTL, function () use ($legislature) {
             return Initiative::query()
+                ->forLegislature($legislature)
                 ->where('author_category', 'government')
                 ->selectRaw('COUNT(*) as total')
                 ->selectRaw("SUM(CASE WHEN status = 'approved' THEN 1 ELSE 0 END) as approved")
@@ -53,14 +56,15 @@ class DashboardService
     /**
      * @return array{unanimousCount: int, unanimousPct: float}
      */
-    public function getUnanimousStats(): array
+    public function getUnanimousStats(Legislature $legislature): array
     {
-        return Cache::remember('dashboard.unanimous_stats', self::CACHE_TTL, function () {
-            $totalLatestVotes = Vote::query()->where('is_latest', true)->count();
-            $unanimousCount = Vote::query()
+        return Cache::remember("dashboard.{$legislature->id}.unanimous_stats", self::CACHE_TTL, function () use ($legislature) {
+            $latestVotes = Vote::query()
                 ->where('is_latest', true)
-                ->where('unanimous', true)
-                ->count();
+                ->whereRelation('initiative', 'legislature_id', $legislature->id);
+
+            $totalLatestVotes = (clone $latestVotes)->count();
+            $unanimousCount = (clone $latestVotes)->where('unanimous', true)->count();
 
             return [
                 'unanimousCount' => $unanimousCount,
@@ -71,10 +75,11 @@ class DashboardService
         });
     }
 
-    public function getMostActiveParties(int $limit = 3): Collection
+    public function getMostActiveParties(Legislature $legislature, int $limit = 3): Collection
     {
-        return Cache::remember("dashboard.most_active_parties.{$limit}", self::CACHE_TTL, function () use ($limit) {
+        return Cache::remember("dashboard.{$legislature->id}.most_active_parties.{$limit}", self::CACHE_TTL, function () use ($legislature, $limit) {
             return Initiative::query()
+                ->forLegislature($legislature)
                 ->where('author_category', 'parliamentary_group')
                 ->whereNotNull('author_party')
                 ->selectRaw('author_party, COUNT(*) as total')
@@ -85,10 +90,11 @@ class DashboardService
         });
     }
 
-    public function getLeastActiveParties(int $limit = 3): Collection
+    public function getLeastActiveParties(Legislature $legislature, int $limit = 3): Collection
     {
-        return Cache::remember("dashboard.least_active_parties.{$limit}", self::CACHE_TTL, function () use ($limit) {
+        return Cache::remember("dashboard.{$legislature->id}.least_active_parties.{$limit}", self::CACHE_TTL, function () use ($legislature, $limit) {
             return Initiative::query()
+                ->forLegislature($legislature)
                 ->where('author_category', 'parliamentary_group')
                 ->whereNotNull('author_party')
                 ->selectRaw('author_party, COUNT(*) as total')
@@ -99,10 +105,11 @@ class DashboardService
         });
     }
 
-    public function getHighestApprovalParties(int $minThreshold = 10, int $limit = 3): Collection
+    public function getHighestApprovalParties(Legislature $legislature, int $minThreshold = 10, int $limit = 3): Collection
     {
-        return Cache::remember("dashboard.highest_approval_parties.{$minThreshold}.{$limit}", self::CACHE_TTL, function () use ($minThreshold, $limit) {
+        return Cache::remember("dashboard.{$legislature->id}.highest_approval_parties.{$minThreshold}.{$limit}", self::CACHE_TTL, function () use ($legislature, $minThreshold, $limit) {
             return Initiative::query()
+                ->forLegislature($legislature)
                 ->where('author_category', 'parliamentary_group')
                 ->whereNotNull('author_party')
                 ->selectRaw('author_party, COUNT(*) as total')
@@ -122,20 +129,22 @@ class DashboardService
         });
     }
 
-    public function getLegislationBalance(): object
+    public function getLegislationBalance(Legislature $legislature): object
     {
-        return Cache::remember('dashboard.legislation_balance', self::CACHE_TTL, function () {
+        return Cache::remember("dashboard.{$legislature->id}.legislation_balance", self::CACHE_TTL, function () use ($legislature) {
             return Initiative::query()
+                ->forLegislature($legislature)
                 ->selectRaw("SUM(CASE WHEN author_category = 'government' THEN 1 ELSE 0 END) as gov")
                 ->selectRaw("SUM(CASE WHEN author_category = 'parliamentary_group' THEN 1 ELSE 0 END) as parl")
                 ->first();
         });
     }
 
-    public function getLatestInitiatives(int $limit = 10): Collection
+    public function getLatestInitiatives(Legislature $legislature, int $limit = 10): Collection
     {
-        return Cache::remember("dashboard.latest_initiatives.{$limit}", self::CACHE_TTL, function () use ($limit) {
+        return Cache::remember("dashboard.{$legislature->id}.latest_initiatives.{$limit}", self::CACHE_TTL, function () use ($legislature, $limit) {
             return Initiative::query()
+                ->forLegislature($legislature)
                 ->whereNotNull('final_vote_date')
                 ->with('votes')
                 ->orderByDesc('final_vote_date')

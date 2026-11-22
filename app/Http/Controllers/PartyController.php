@@ -5,22 +5,26 @@ namespace App\Http\Controllers;
 use App\Http\Requests\ShowPartyRequest;
 use App\Models\Initiative;
 use App\Models\VotePosition;
+use App\Services\LegislatureContext;
 use App\Services\PartyStatsService;
 use Illuminate\Contracts\View\View;
 
 class PartyController extends Controller
 {
+    public function __construct(private LegislatureContext $legislatureContext) {}
+
     public function index(PartyStatsService $partyStats): View
     {
         return view('pages.parties.index', [
-            'partyStats' => $partyStats->getAllPartyStats(),
+            'partyStats' => $partyStats->getAllPartyStats($this->legislatureContext->activeOrFail()),
         ]);
     }
 
-    public function show(string $party, ShowPartyRequest $request, PartyStatsService $partyStats): View
+    public function show(ShowPartyRequest $request, PartyStatsService $partyStats): View
     {
-        $acronym = strtoupper($party);
-        $stats = $partyStats->getPartyStats($acronym);
+        $legislature = $this->legislatureContext->activeOrFail();
+        $acronym = strtoupper($request->route('party'));
+        $stats = $partyStats->getPartyStats($legislature, $acronym);
 
         if ($stats === null) {
             abort(404);
@@ -34,7 +38,9 @@ class PartyController extends Controller
 
         $baseQuery = VotePosition::with(['vote.initiative'])
             ->where('party', $acronym)
-            ->whereHas('vote', fn ($query) => $query->where('is_latest', true));
+            ->whereHas('vote', fn ($query) => $query
+                ->where('is_latest', true)
+                ->whereRelation('initiative', 'legislature_id', $legislature->id));
 
         if ($type) {
             $baseQuery->whereHas('vote.initiative', fn ($q) => $q->where('initiative_type', $type));
@@ -69,6 +75,7 @@ class PartyController extends Controller
             ->withQueryString();
 
         $initiativeTypes = Initiative::query()
+            ->forLegislature($legislature)
             ->whereNotNull('initiative_type')
             ->selectRaw('initiative_type, initiative_type_label')
             ->groupBy('initiative_type', 'initiative_type_label')
@@ -81,7 +88,7 @@ class PartyController extends Controller
         $authoredSort = $request->validated('authored_sort', 'date');
         $authoredDirection = $request->validated('authored_direction', 'desc');
 
-        $authoredBaseQuery = Initiative::query()->where('author_party', $acronym);
+        $authoredBaseQuery = Initiative::query()->forLegislature($legislature)->where('author_party', $acronym);
 
         if ($authoredType) {
             $authoredBaseQuery->where('initiative_type', $authoredType);
@@ -113,6 +120,7 @@ class PartyController extends Controller
             ->withQueryString();
 
         $authoredTypes = Initiative::query()
+            ->forLegislature($legislature)
             ->where('author_party', $acronym)
             ->whereNotNull('initiative_type')
             ->selectRaw('initiative_type, initiative_type_label')
@@ -122,7 +130,7 @@ class PartyController extends Controller
 
         return view('pages.parties.show', [
             'stats' => $stats,
-            'trend' => $partyStats->getMonthlyTrend($acronym),
+            'trend' => $partyStats->getMonthlyTrend($legislature, $acronym),
             'votes' => $votes,
             'positionCounts' => $positionCounts,
             'currentPosition' => $position,

@@ -37,8 +37,8 @@
                 {{-- Desktop nav --}}
                 <div class="hidden items-center gap-1 sm:flex">
                     @foreach (['dashboard' => 'dashboard', 'initiatives' => 'initiatives.index', 'parties' => 'parties.index', 'about' => 'about'] as $key => $routeName)
-                        <a href="{{ route($routeName) }}"
-                           @php $isActive = str_contains($routeName, '.') ? request()->routeIs(str($routeName)->before('.') . '.*') : request()->routeIs($routeName); @endphp
+                        <a href="{{ $routeName === 'about' ? route($routeName) : $legislatureContext->route($routeName) }}"
+                           @php $isActive = str_contains($routeName, '.') ? request()->routeIs(str($routeName)->before('.') . '.*', 'legislatures.' . str($routeName)->before('.') . '.*') : request()->routeIs($routeName, 'legislatures.' . $routeName); @endphp
                            class="rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-sand-100 hover:text-republic-700 dark:hover:bg-sand-900 dark:hover:text-republic-400 {{ $isActive ? 'bg-sand-100 text-republic-700 dark:bg-sand-900 dark:text-republic-400' : 'text-sand-600 dark:text-sand-400' }}">
                             {{ __('ui.nav.' . $key) }}
                         </a>
@@ -77,8 +77,8 @@
             {{-- Mobile menu --}}
             <div x-show="open" x-cloak x-transition class="border-t border-sand-200 pb-4 sm:hidden dark:border-sand-800">
                 @foreach (['dashboard' => 'dashboard', 'initiatives' => 'initiatives.index', 'parties' => 'parties.index', 'about' => 'about'] as $key => $routeName)
-                    <a href="{{ route($routeName) }}"
-                       @php $isActive = str_contains($routeName, '.') ? request()->routeIs(str($routeName)->before('.') . '.*') : request()->routeIs($routeName); @endphp
+                    <a href="{{ $routeName === 'about' ? route($routeName) : $legislatureContext->route($routeName) }}"
+                       @php $isActive = str_contains($routeName, '.') ? request()->routeIs(str($routeName)->before('.') . '.*', 'legislatures.' . str($routeName)->before('.') . '.*') : request()->routeIs($routeName, 'legislatures.' . $routeName); @endphp
                        class="block rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-sand-100 dark:hover:bg-sand-900 {{ $isActive ? 'text-republic-700 dark:text-republic-400' : 'text-sand-600 dark:text-sand-400' }}">
                         {{ __('ui.nav.' . $key) }}
                     </a>
@@ -89,6 +89,8 @@
 
     {{-- Main content --}}
     <main id="main-content" class="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+        <x-legislature-switcher class="mb-6" />
+
         @yield('content')
     </main>
 
@@ -100,9 +102,9 @@
                 <div>
                     <h3 class="text-sm font-semibold uppercase tracking-wider text-sand-500 dark:text-sand-400">{{ __('ui.footer.navigation') }}</h3>
                     <ul class="mt-4 space-y-2">
-                        <li><a href="{{ route('dashboard') }}" class="text-sm text-sand-600 transition-colors hover:text-republic-700 dark:text-sand-400 dark:hover:text-republic-400">{{ __('ui.nav.dashboard') }}</a></li>
-                        <li><a href="{{ route('initiatives.index') }}" class="text-sm text-sand-600 transition-colors hover:text-republic-700 dark:text-sand-400 dark:hover:text-republic-400">{{ __('ui.nav.initiatives') }}</a></li>
-                        <li><a href="{{ route('parties.index') }}" class="text-sm text-sand-600 transition-colors hover:text-republic-700 dark:text-sand-400 dark:hover:text-republic-400">{{ __('ui.nav.parties') }}</a></li>
+                        <li><a href="{{ $legislatureContext->route('dashboard') }}" class="text-sm text-sand-600 transition-colors hover:text-republic-700 dark:text-sand-400 dark:hover:text-republic-400">{{ __('ui.nav.dashboard') }}</a></li>
+                        <li><a href="{{ $legislatureContext->route('initiatives.index') }}" class="text-sm text-sand-600 transition-colors hover:text-republic-700 dark:text-sand-400 dark:hover:text-republic-400">{{ __('ui.nav.initiatives') }}</a></li>
+                        <li><a href="{{ $legislatureContext->route('parties.index') }}" class="text-sm text-sand-600 transition-colors hover:text-republic-700 dark:text-sand-400 dark:hover:text-republic-400">{{ __('ui.nav.parties') }}</a></li>
                         <li><a href="{{ route('about') }}" class="text-sm text-sand-600 transition-colors hover:text-republic-700 dark:text-sand-400 dark:hover:text-republic-400">{{ __('ui.nav.about') }}</a></li>
                     </ul>
                 </div>

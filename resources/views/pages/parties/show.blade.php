@@ -8,7 +8,7 @@
 @section('content')
     <div class="space-y-8">
         {{-- Back link --}}
-        <a href="{{ route('parties.index') }}" class="inline-flex items-center gap-1 text-sm font-medium text-sand-500 transition-colors hover:text-republic-700 dark:text-sand-400 dark:hover:text-republic-400">
+        <a href="{{ $legislatureContext->route('parties.index') }}" class="inline-flex items-center gap-1 text-sm font-medium text-sand-500 transition-colors hover:text-republic-700 dark:text-sand-400 dark:hover:text-republic-400">
             <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
             </svg>
@@ -150,7 +150,7 @@
                     <div class="mb-4 flex flex-wrap items-center gap-3 sm:flex-nowrap">
                         {{-- Status filter tabs --}}
                         <div class="flex flex-wrap gap-2">
-                            <a href="{{ route('parties.show', array_merge([$partySlug], $authoredTabBaseParams)) . $authoredAnchor }}"
+                            <a href="{{ $legislatureContext->route('parties.show', array_merge([$partySlug], $authoredTabBaseParams)) . $authoredAnchor }}"
                                @class([
                                    'rounded-full px-3 py-1 text-sm font-medium transition-colors',
                                    'bg-republic-600 text-white dark:bg-republic-500' => $authoredCurrentStatus === null,
@@ -160,7 +160,7 @@
                             </a>
 
                             @foreach (['approved', 'rejected', 'in_progress'] as $status)
-                                <a href="{{ route('parties.show', array_merge([$partySlug, 'authored_status' => $status], $authoredTabBaseParams)) . $authoredAnchor }}"
+                                <a href="{{ $legislatureContext->route('parties.show', array_merge([$partySlug, 'authored_status' => $status], $authoredTabBaseParams)) . $authoredAnchor }}"
                                    @class([
                                        'rounded-full px-3 py-1 text-sm font-medium transition-colors',
                                        'bg-republic-600 text-white dark:bg-republic-500' => $authoredCurrentStatus === $status,
@@ -186,18 +186,18 @@
                         <select
                             onchange="if(this.value){window.location=this.value}"
                             class="rounded-lg border border-sand-200 bg-white px-3 py-1.5 text-sm text-sand-700 dark:border-sand-700 dark:bg-sand-800 dark:text-sand-300">
-                            <option value="{{ route('parties.show', array_merge([$partySlug], $authoredTypeBaseParams)) . $authoredAnchor }}" {{ $authoredCurrentType === null ? 'selected' : '' }}>
+                            <option value="{{ $legislatureContext->route('parties.show', array_merge([$partySlug], $authoredTypeBaseParams)) . $authoredAnchor }}" {{ $authoredCurrentType === null ? 'selected' : '' }}>
                                 {{ __('ui.parties.authored_all_types') }}
                             </option>
                             @foreach ($authoredTypes as $typeCode => $typeLabel)
-                                <option value="{{ route('parties.show', array_merge([$partySlug, 'authored_type' => $typeCode], $authoredTypeBaseParams)) . $authoredAnchor }}" {{ $authoredCurrentType === $typeCode ? 'selected' : '' }}>
+                                <option value="{{ $legislatureContext->route('parties.show', array_merge([$partySlug, 'authored_type' => $typeCode], $authoredTypeBaseParams)) . $authoredAnchor }}" {{ $authoredCurrentType === $typeCode ? 'selected' : '' }}>
                                     {{ $typeLabel }}
                                 </option>
                             @endforeach
                         </select>
 
                         {{-- Search input --}}
-                        <form action="{{ route('parties.show', $partySlug) . $authoredAnchor }}" method="GET" class="ml-auto">
+                        <form action="{{ $legislatureContext->route('parties.show', $partySlug) . $authoredAnchor }}" method="GET" class="ml-auto">
                             @if ($authoredCurrentStatus)
                                 <input type="hidden" name="authored_status" value="{{ $authoredCurrentStatus }}">
                             @endif
@@ -262,7 +262,7 @@
                                                 'direction' => $currentDirection !== 'desc' ? $currentDirection : null,
                                             ]);
                                         @endphp
-                                        <a href="{{ route('parties.show', array_merge([$partySlug], $authoredDateSortParams)) . $authoredAnchor }}"
+                                        <a href="{{ $legislatureContext->route('parties.show', array_merge([$partySlug], $authoredDateSortParams)) . $authoredAnchor }}"
                                            class="inline-flex items-center gap-1 hover:text-sand-900 dark:hover:text-sand-100">
                                             {{ __('ui.parties.authored_sort_date') }}
                                             @if ($authoredCurrentSort === 'date')
@@ -290,7 +290,7 @@
                                                 'direction' => $currentDirection !== 'desc' ? $currentDirection : null,
                                             ]);
                                         @endphp
-                                        <a href="{{ route('parties.show', array_merge([$partySlug], $authoredStatusSortParams)) . $authoredAnchor }}"
+                                        <a href="{{ $legislatureContext->route('parties.show', array_merge([$partySlug], $authoredStatusSortParams)) . $authoredAnchor }}"
                                            class="inline-flex items-center gap-1 hover:text-sand-900 dark:hover:text-sand-100">
                                             {{ __('ui.parties.authored_sort_status') }}
                                             @if ($authoredCurrentSort === 'status')
@@ -410,7 +410,7 @@
 
                         {{-- Position filter tabs --}}
                         <div class="flex flex-wrap gap-2">
-                            <a href="{{ route('parties.show', array_merge([$partySlug], $tabBaseParams)) . $anchor }}"
+                            <a href="{{ $legislatureContext->route('parties.show', array_merge([$partySlug], $tabBaseParams)) . $anchor }}"
                                @class([
                                    'rounded-full px-3 py-1 text-sm font-medium transition-colors',
                                    'bg-republic-600 text-white dark:bg-republic-500' => $currentPosition === null,
@@ -420,7 +420,7 @@
                             </a>
 
                             @foreach (['favor', 'contra', 'abstencao'] as $pos)
-                                <a href="{{ route('parties.show', array_merge([$partySlug, 'position' => $pos], $tabBaseParams)) . $anchor }}"
+                                <a href="{{ $legislatureContext->route('parties.show', array_merge([$partySlug, 'position' => $pos], $tabBaseParams)) . $anchor }}"
                                    @class([
                                        'rounded-full px-3 py-1 text-sm font-medium transition-colors',
                                        'bg-republic-600 text-white dark:bg-republic-500' => $currentPosition === $pos,
@@ -442,18 +442,18 @@
                         <select
                             onchange="if(this.value){window.location=this.value}"
                             class="rounded-lg border border-sand-200 bg-white px-3 py-1.5 text-sm text-sand-700 dark:border-sand-700 dark:bg-sand-800 dark:text-sand-300">
-                            <option value="{{ route('parties.show', array_merge([$partySlug], $typeBaseParams)) . $anchor }}" {{ $currentType === null ? 'selected' : '' }}>
+                            <option value="{{ $legislatureContext->route('parties.show', array_merge([$partySlug], $typeBaseParams)) . $anchor }}" {{ $currentType === null ? 'selected' : '' }}>
                                 {{ __('ui.parties.all_types') }}
                             </option>
                             @foreach ($initiativeTypes as $typeCode => $typeLabel)
-                                <option value="{{ route('parties.show', array_merge([$partySlug, 'type' => $typeCode], $typeBaseParams)) . $anchor }}" {{ $currentType === $typeCode ? 'selected' : '' }}>
+                                <option value="{{ $legislatureContext->route('parties.show', array_merge([$partySlug, 'type' => $typeCode], $typeBaseParams)) . $anchor }}" {{ $currentType === $typeCode ? 'selected' : '' }}>
                                     {{ $typeLabel }}
                                 </option>
                             @endforeach
                         </select>
 
                         {{-- Search input --}}
-                        <form action="{{ route('parties.show', $partySlug) . $anchor }}" method="GET" class="ml-auto">
+                        <form action="{{ $legislatureContext->route('parties.show', $partySlug) . $anchor }}" method="GET" class="ml-auto">
                             @if ($currentPosition)
                                 <input type="hidden" name="position" value="{{ $currentPosition }}">
                             @endif
@@ -496,7 +496,7 @@
                                         @php
                                             $dateDirection = ($currentSort === 'date' && $currentDirection === 'desc') ? 'asc' : 'desc';
                                         @endphp
-                                        <a href="{{ route('parties.show', array_merge([strtolower($stats['acronym'])], array_filter(['position' => $currentPosition, 'type' => $currentType, 'sort' => 'date', 'direction' => $dateDirection]))) . $anchor }}"
+                                        <a href="{{ $legislatureContext->route('parties.show', array_merge([strtolower($stats['acronym'])], array_filter(['position' => $currentPosition, 'type' => $currentType, 'sort' => 'date', 'direction' => $dateDirection]))) . $anchor }}"
                                            class="inline-flex items-center gap-1 hover:text-sand-900 dark:hover:text-sand-100">
                                             {{ __('ui.parties.sort_date') }}
                                             @if ($currentSort === 'date')
@@ -517,7 +517,7 @@
                                         @php
                                             $resultDirection = ($currentSort === 'result' && $currentDirection === 'desc') ? 'asc' : 'desc';
                                         @endphp
-                                        <a href="{{ route('parties.show', array_merge([strtolower($stats['acronym'])], array_filter(['position' => $currentPosition, 'type' => $currentType, 'sort' => 'result', 'direction' => $resultDirection]))) . $anchor }}"
+                                        <a href="{{ $legislatureContext->route('parties.show', array_merge([strtolower($stats['acronym'])], array_filter(['position' => $currentPosition, 'type' => $currentType, 'sort' => 'result', 'direction' => $resultDirection]))) . $anchor }}"
                                            class="inline-flex items-center gap-1 hover:text-sand-900 dark:hover:text-sand-100">
                                             {{ __('ui.parties.sort_result') }}
                                             @if ($currentSort === 'result')

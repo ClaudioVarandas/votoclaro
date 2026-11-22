@@ -133,7 +133,7 @@
                 if (this.status) params.set('status', this.status);
                 if (this.authorType) params.set('author_category', this.authorType);
                 if (page > 1) params.set('page', page);
-                return '{{ route("initiatives.index") }}' + (params.toString() ? '?' + params.toString() : '');
+                return '{{ $legislatureContext->route("initiatives.index") }}' + (params.toString() ? '?' + params.toString() : '');
             },
 
             async applyFilters() {

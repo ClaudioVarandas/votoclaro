@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Initiative;
+use App\Models\Legislature;
 use App\Models\Vote;
 use App\Models\VotePosition;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -14,6 +15,8 @@ class DashboardTest extends TestCase
 
     public function test_dashboard_returns_successful_response(): void
     {
+        Legislature::factory()->xvii()->withParties()->create();
+
         $response = $this->get(route('dashboard'));
 
         $response->assertStatus(200);
@@ -140,6 +143,8 @@ class DashboardTest extends TestCase
 
     public function test_dashboard_party_grid_links_to_party_pages(): void
     {
+        Legislature::factory()->xvii()->withParties()->create();
+
         $response = $this->get(route('dashboard'));
 
         $response->assertSee(route('parties.show', 'ps'));
@@ -160,6 +165,8 @@ class DashboardTest extends TestCase
 
     public function test_dashboard_renders_with_empty_database(): void
     {
+        Legislature::factory()->xvii()->withParties()->create();
+
         $response = $this->get(route('dashboard'));
 
         $response->assertStatus(200);

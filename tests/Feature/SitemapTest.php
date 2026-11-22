@@ -2,10 +2,14 @@
 
 namespace Tests\Feature;
 
+use App\Models\Legislature;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class SitemapTest extends TestCase
 {
+    use RefreshDatabase;
+
     public function test_sitemap_returns_successful_response(): void
     {
         $response = $this->get(route('sitemap'));
@@ -16,6 +20,8 @@ class SitemapTest extends TestCase
 
     public function test_sitemap_contains_expected_urls(): void
     {
+        Legislature::factory()->xvii()->withParties()->create();
+
         $response = $this->get(route('sitemap'));
 
         $response->assertSee(route('dashboard'));

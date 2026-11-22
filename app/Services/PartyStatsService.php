@@ -2,32 +2,39 @@
 
 namespace App\Services;
 
+use App\Models\Legislature;
 use App\Models\VotePosition;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 
 class PartyStatsService
 {
-    /** @var array<string> */
-    public const MAIN_PARTIES = [
-        'BE', 'CDS-PP', 'CH', 'IL', 'JPP', 'L', 'PAN', 'PCP', 'PS', 'PSD',
-    ];
-
     public function __construct(private VotePositionParserService $parser) {}
+
+    /**
+     * Acronyms of the parliamentary groups of a legislature, alphabetically.
+     *
+     * @return list<string>
+     */
+    public function partyAcronyms(Legislature $legislature): array
+    {
+        return $legislature->parties()->orderBy('acronym')->pluck('acronym')->all();
+    }
 
     /**
      * Get aggregate stats for all main parties.
      *
      * @return array<string, array{acronym: string, total_votes: int, favor: int, contra: int, abstencao: int, favor_pct: float, contra_pct: float, abstencao_pct: float, government_alignment: float}>
      */
-    public function getAllPartyStats(): array
+    public function getAllPartyStats(Legislature $legislature): array
     {
-        return Cache::remember('party_stats.all', 3600, function () {
-            $parsed = $this->buildParsedPositions();
-            $governmentVoteIds = $this->getGovernmentVoteIds();
+        return Cache::remember("party_stats.{$legislature->id}.all", 3600, function () use ($legislature) {
+            $acronyms = $this->partyAcronyms($legislature);
+            $parsed = $this->buildParsedPositions($legislature, $acronyms);
+            $governmentVoteIds = $this->getGovernmentVoteIds($legislature);
 
             $stats = [];
-            foreach (self::MAIN_PARTIES as $acronym) {
+            foreach ($acronyms as $acronym) {
                 $stats[$acronym] = $this->computeStats($acronym, $parsed, $governmentVoteIds);
             }
 
@@ -40,17 +47,17 @@ class PartyStatsService
      *
      * @return array{acronym: string, total_votes: int, favor: int, contra: int, abstencao: int, favor_pct: float, contra_pct: float, abstencao_pct: float, government_alignment: float}|null
      */
-    public function getPartyStats(string $acronym): ?array
+    public function getPartyStats(Legislature $legislature, string $acronym): ?array
     {
         $acronym = strtoupper($acronym);
 
-        if (! in_array($acronym, self::MAIN_PARTIES, true)) {
+        if (! in_array($acronym, $this->partyAcronyms($legislature), true)) {
             return null;
         }
 
-        return Cache::remember("party_stats.{$acronym}", 3600, function () use ($acronym) {
-            $parsed = $this->buildParsedPositions();
-            $governmentVoteIds = $this->getGovernmentVoteIds();
+        return Cache::remember("party_stats.{$legislature->id}.{$acronym}", 3600, function () use ($legislature, $acronym) {
+            $parsed = $this->buildParsedPositions($legislature, [$acronym]);
+            $governmentVoteIds = $this->getGovernmentVoteIds($legislature);
 
             return $this->computeStats($acronym, $parsed, $governmentVoteIds);
         });
@@ -61,12 +68,14 @@ class PartyStatsService
      *
      * @return array<int, array{month: string, favor: int, contra: int, abstencao: int, total: int}>
      */
-    public function getMonthlyTrend(string $acronym): array
+    public function getMonthlyTrend(Legislature $legislature, string $acronym): array
     {
         $acronym = strtoupper($acronym);
 
         $positions = VotePosition::query()
             ->join('votes', 'vote_positions.vote_id', '=', 'votes.id')
+            ->join('initiatives', 'votes.initiative_id', '=', 'initiatives.id')
+            ->where('initiatives.legislature_id', $legislature->id)
             ->where('vote_positions.party', $acronym)
             ->where('votes.is_latest', true) // important
             ->whereNotNull('votes.date')
@@ -98,16 +107,20 @@ class PartyStatsService
     }
 
     /**
-     * Parse all vote positions and return a flat collection
+     * Vote positions of the given parties in a legislature, as a flat collection.
      *
-     * @return Collection<int, array{vote_id: string, party: string, position: string, is_government: bool}>
+     * @param  list<string>  $acronyms
+     * @return Collection<int, array{vote_id: string, party: string, position: string}>
      */
-    private function buildParsedPositions(): Collection
+    private function buildParsedPositions(Legislature $legislature, array $acronyms): Collection
     {
         return VotePosition::query()
-            ->select('vote_id', 'party', 'position')
+            ->join('votes', 'vote_positions.vote_id', '=', 'votes.id')
+            ->join('initiatives', 'votes.initiative_id', '=', 'initiatives.id')
+            ->where('initiatives.legislature_id', $legislature->id)
+            ->whereIn('vote_positions.party', $acronyms)
+            ->select('vote_positions.vote_id', 'vote_positions.party', 'vote_positions.position')
             ->get()
-            ->filter(fn ($row) => in_array($row->party, self::MAIN_PARTIES, true))
             ->map(function ($row) {
                 return [
                     'vote_id' => $row->vote_id,
@@ -118,15 +131,16 @@ class PartyStatsService
     }
 
     /**
-     * Get all vote IDs that belong to government initiatives.
+     * Get the IDs of the votes on government initiatives in a legislature.
      *
      * @return array<string>
      */
-    private function getGovernmentVoteIds(): array
+    private function getGovernmentVoteIds(Legislature $legislature): array
     {
         return VotePosition::query()
             ->join('votes', 'vote_positions.vote_id', '=', 'votes.id')
             ->join('initiatives', 'votes.initiative_id', '=', 'initiatives.id')
+            ->where('initiatives.legislature_id', $legislature->id)
             ->where('initiatives.author_category', 'government')
             ->distinct()
             ->pluck('votes.id')

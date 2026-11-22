@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Initiative;
+use App\Models\Legislature;
 use App\Models\Vote;
 use App\Models\VotePosition;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -14,6 +15,8 @@ class PartyListingTest extends TestCase
 
     public function test_index_returns_successful_response(): void
     {
+        Legislature::factory()->xvii()->withParties()->create();
+
         $response = $this->get(route('parties.index'));
 
         $response->assertStatus(200);
@@ -46,6 +49,8 @@ class PartyListingTest extends TestCase
 
     public function test_index_displays_all_main_parties(): void
     {
+        Legislature::factory()->xvii()->withParties()->create();
+
         $response = $this->get(route('parties.index'));
 
         $response->assertViewHas('partyStats');

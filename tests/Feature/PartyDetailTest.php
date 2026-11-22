@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Initiative;
+use App\Models\Legislature;
 use App\Models\Vote;
 use App\Models\VotePosition;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -81,6 +82,8 @@ class PartyDetailTest extends TestCase
 
     public function test_show_has_back_link(): void
     {
+        Legislature::factory()->xvii()->withParties()->create();
+
         $response = $this->get(route('parties.show', 'ps'));
 
         $response->assertSee(__('ui.parties.back_to_list'));

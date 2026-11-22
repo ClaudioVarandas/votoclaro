@@ -2,21 +2,32 @@
 
 namespace App\Console\Commands;
 
+use App\Services\LegislatureContext;
 use App\Services\ParliamentInitiativeSyncService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Artisan;
 
 class ImportParliamentInitiatives extends Command
 {
-    protected $signature = 'ar:initiatives:import';
+    protected $signature = 'ar:initiatives:import {--legislature= : Sigla of the legislature, e.g. XVII (default: the current one)}';
+
     protected $description = 'Import parliamentary initiatives from JSON source';
 
-    public function handle()
+    public function handle(LegislatureContext $legislatureContext, ParliamentInitiativeSyncService $syncService): int
     {
-        $this->info('Starting sync...');
+        $sigla = $this->option('legislature');
+        $legislature = $legislatureContext->resolve($sigla);
+
+        if (! $legislature) {
+            $this->error($sigla ? "Unknown legislature [{$sigla}]." : 'No legislature registered yet: run ar:legislature:register first.');
+
+            return self::FAILURE;
+        }
+
+        $this->info("Starting sync of the {$legislature->sigla} legislature...");
 
         try {
-            app(ParliamentInitiativeSyncService::class)->sync();
+            $syncService->sync($legislature);
 
             Artisan::call('cache:clear');
 
@@ -24,6 +35,10 @@ class ImportParliamentInitiatives extends Command
 
         } catch (\Throwable $e) {
             $this->error($e->getMessage());
+
+            return self::FAILURE;
         }
+
+        return self::SUCCESS;
     }
 }

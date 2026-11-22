@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
@@ -19,6 +20,7 @@ class Initiative extends Model
 
     protected $fillable = [
         'id',
+        'legislature_id',
         'title',
         'status',
         'entry_date',
@@ -31,6 +33,11 @@ class Initiative extends Model
         'initiative_type',
         'initiative_type_label',
     ];
+
+    public function legislature(): BelongsTo
+    {
+        return $this->belongsTo(Legislature::class);
+    }
 
     public function votes(): HasMany
     {
@@ -92,6 +99,11 @@ class Initiative extends Model
                 return str($this->initiative_type_label)->ascii()->lower()->replace(' ', '_')->toString();
             },
         );
+    }
+
+    public function scopeForLegislature(Builder $query, Legislature $legislature): Builder
+    {
+        return $query->where('legislature_id', $legislature->id);
     }
 
     public function scopeFilterByStatus(Builder $query, ?string $status): Builder

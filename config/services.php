@@ -35,6 +35,8 @@ return [
         ],
     ],
 
+    // Only read by the migration that registers the XVII legislature. Every legislature now
+    // keeps its own source URLs (php artisan ar:legislature:register).
     'parliament' => [
         'json_url' => env('PARLIAMENT_JSON_URL'),
         'base_info_url' => env('PARLIAMENT_BASE_INFO_URL'),

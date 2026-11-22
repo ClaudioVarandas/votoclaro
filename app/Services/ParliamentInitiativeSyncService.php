@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Initiative;
+use App\Models\Legislature;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Support\Facades\DB;
@@ -13,11 +14,13 @@ class ParliamentInitiativeSyncService
 {
     public function __construct(private VoteParser $voteParser) {}
 
-    public function sync(): void
+    public function sync(Legislature $legislature): void
     {
-        $url = config('services.parliament.json_url');
+        if (! $legislature->initiatives_url) {
+            throw new Exception("The {$legislature->sigla} legislature has no initiatives URL.");
+        }
 
-        $response = Http::get($url);
+        $response = Http::get($legislature->initiatives_url);
 
         if (! $response->successful()) {
             throw new Exception('Failed to fetch parliamentary JSON');
@@ -26,7 +29,7 @@ class ParliamentInitiativeSyncService
         $data = $response->json();
 
         if (app()->isLocal()) {
-            $dir = base_path('data/initiatives');
+            $dir = base_path("data/{$legislature->sigla}/initiatives");
             File::ensureDirectoryExists($dir);
         }
 
@@ -35,13 +38,13 @@ class ParliamentInitiativeSyncService
                 File::put($dir.'/'.$item['IniId'].'.json', json_encode($item, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
             }
 
-            DB::transaction(function () use ($item) {
-                $this->syncInitiative($item);
+            DB::transaction(function () use ($legislature, $item) {
+                $this->syncInitiative($legislature, $item);
             });
         }
     }
 
-    private function syncInitiative(array $item): void
+    private function syncInitiative(Legislature $legislature, array $item): void
     {
         $initiativeId = $item['IniId'];
 
@@ -69,6 +72,7 @@ class ParliamentInitiativeSyncService
         $initiative = Initiative::updateOrCreate(
             ['id' => $initiativeId],
             [
+                'legislature_id' => $legislature->id,
                 'title' => $item['IniTitulo'],
                 // 'author_type' => $author['category'],
                 'status' => $status,

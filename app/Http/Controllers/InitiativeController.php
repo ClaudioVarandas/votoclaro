@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Initiative;
+use App\Services\LegislatureContext;
 use App\Services\VotePositionParserService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
@@ -10,9 +11,10 @@ use Illuminate\Http\Response;
 
 class InitiativeController extends Controller
 {
-    public function index(Request $request): View|Response
+    public function index(Request $request, LegislatureContext $legislatureContext): View|Response
     {
         $initiatives = Initiative::query()
+            ->forLegislature($legislatureContext->activeOrFail())
             ->filterByStatus($request->query('status'))
             ->filterByAuthorCategory($request->query('author_category'))
             ->filterBySearch($request->query('search'))
@@ -34,7 +36,7 @@ class InitiativeController extends Controller
 
     public function show(Initiative $initiative, VotePositionParserService $parser): View
     {
-        $initiative->load('votes.positions');
+        $initiative->load(['legislature', 'votes.positions']);
 
         $votesWithPositions = $initiative->votes
             ->sortByDesc('date')

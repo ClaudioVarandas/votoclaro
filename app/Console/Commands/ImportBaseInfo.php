@@ -3,49 +3,73 @@
 namespace App\Console\Commands;
 
 use App\Models\Party;
+use App\Services\LegislatureContext;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
 
 class ImportBaseInfo extends Command
 {
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
-    protected $signature = 'ar:base_info:import';
+    protected $signature = 'ar:base_info:import {--legislature= : Sigla of the legislature, e.g. XVII (default: the current one)}';
 
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
-    protected $description = 'Command description';
+    protected $description = "Import a legislature's dates and parliamentary groups from its base information";
 
-    /**
-     * Execute the console command.
-     */
-    public function handle()
+    public function handle(LegislatureContext $legislatureContext): int
     {
-        $url = config('services.parliament.base_info_url');
+        $sigla = $this->option('legislature');
+        $legislature = $legislatureContext->resolve($sigla);
 
-        $response = Http::get($url);
+        if (! $legislature) {
+            $this->error($sigla ? "Unknown legislature [{$sigla}]." : 'No legislature registered yet: run ar:legislature:register first.');
+
+            return self::FAILURE;
+        }
+
+        if (! $legislature->base_info_url) {
+            $this->error("The {$legislature->sigla} legislature has no base information URL.");
+
+            return self::FAILURE;
+        }
+
+        $response = Http::get($legislature->base_info_url);
+
+        if (! $response->successful()) {
+            $this->error('Failed to fetch the base information JSON.');
+
+            return self::FAILURE;
+        }
+
         $data = $response->json();
 
         if (app()->isLocal()) {
-            File::ensureDirectoryExists(base_path('data'));
-            File::put(base_path('data/base_info.json'), $response->body());
-            $this->info('Saved raw response to data/base_info.json');
+            File::ensureDirectoryExists(base_path("data/{$legislature->sigla}"));
+            File::put(base_path("data/{$legislature->sigla}/base_info.json"), $response->body());
+            $this->info("Saved raw response to data/{$legislature->sigla}/base_info.json");
         }
 
-        foreach ($data['GruposParlamentares'] as $group) {
-            Party::updateOrCreate(
+        $details = $data['DetalheLegislatura'] ?? [];
+
+        if (($details['sigla'] ?? null) !== $legislature->sigla) {
+            $this->error('The base information is for legislature ['.($details['sigla'] ?? '?')."], not {$legislature->sigla}.");
+
+            return self::FAILURE;
+        }
+
+        $legislature->update([
+            'start_date' => $details['dtini'] ?? null,
+            'end_date' => $details['dtfim'] ?? null,
+        ]);
+
+        $partyIds = collect($data['GruposParlamentares'] ?? [])
+            ->map(fn (array $group): int => Party::updateOrCreate(
                 ['acronym' => $group['sigla']],
-                ['name' => $group['nome']]
-            );
-        }
+                ['name' => $group['nome']],
+            )->id);
 
-        $this->info('Parties synced.');
+        $legislature->parties()->syncWithoutDetaching($partyIds);
+
+        $this->info("{$legislature->sigla} legislature and its {$partyIds->count()} parties synced.");
+
+        return self::SUCCESS;
     }
 }

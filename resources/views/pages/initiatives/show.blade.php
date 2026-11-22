@@ -11,7 +11,7 @@
         <nav aria-label="Breadcrumbs">
             <ol class="flex items-center gap-1.5 text-sm text-sand-500 dark:text-sand-400">
                 <li>
-                    <a href="{{ route('dashboard') }}" class="transition-colors hover:text-republic-700 dark:hover:text-republic-400">
+                    <a href="{{ $legislatureContext->route('dashboard', [], $initiative->legislature) }}" class="transition-colors hover:text-republic-700 dark:hover:text-republic-400">
                         {{ __('ui.breadcrumbs.dashboard') }}
                     </a>
                 </li>
@@ -21,7 +21,7 @@
                     </svg>
                 </li>
                 <li>
-                    <a href="{{ route('initiatives.index') }}" class="transition-colors hover:text-republic-700 dark:hover:text-republic-400">
+                    <a href="{{ $legislatureContext->route('initiatives.index', [], $initiative->legislature) }}" class="transition-colors hover:text-republic-700 dark:hover:text-republic-400">
                         {{ __('ui.breadcrumbs.initiatives') }}
                     </a>
                 </li>
@@ -43,6 +43,10 @@
             <h1 class="font-serif text-2xl font-bold leading-tight tracking-tight text-sand-900 sm:text-3xl dark:text-sand-100">
                 {{ $initiative->title }}
             </h1>
+
+            <p class="text-sm text-sand-500 dark:text-sand-400">
+                {{ __('ui.legislature.name', ['sigla' => $initiative->legislature->sigla]) }}
+            </p>
         </div>
 
         {{-- Metadata summary card --}}
@@ -119,7 +123,7 @@
                     </div>
                     <div class="mt-2">
                         @if ($initiative->author_category === 'parliamentary_group' && $initiative->author_party)
-                            <a href="{{ route('parties.show', strtolower($initiative->author_party)) }}" class="text-sm font-medium text-republic-600 underline transition-colors hover:text-republic-700 dark:text-republic-400 dark:hover:text-republic-300">
+                            <a href="{{ $legislatureContext->route('parties.show', strtolower($initiative->author_party), $initiative->legislature) }}" class="text-sm font-medium text-republic-600 underline transition-colors hover:text-republic-700 dark:text-republic-400 dark:hover:text-republic-300">
                                 {{ $initiative->author_label }}
                             </a>
                         @else

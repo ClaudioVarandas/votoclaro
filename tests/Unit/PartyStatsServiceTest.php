@@ -3,9 +3,11 @@
 namespace Tests\Unit;
 
 use App\Models\Initiative;
+use App\Models\Legislature;
 use App\Models\Vote;
 use App\Models\VotePosition;
 use App\Services\PartyStatsService;
+use Database\Factories\LegislatureFactory;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Tests\TestCase;
@@ -16,11 +18,14 @@ class PartyStatsServiceTest extends TestCase
 
     private PartyStatsService $service;
 
+    private Legislature $legislature;
+
     protected function setUp(): void
     {
         parent::setUp();
 
         $this->service = app(PartyStatsService::class);
+        $this->legislature = Legislature::factory()->xvii()->withParties()->create();
         Cache::flush();
     }
 
@@ -30,10 +35,10 @@ class PartyStatsServiceTest extends TestCase
         $vote = Vote::factory()->create(['initiative_id' => $initiative->id]);
         VotePosition::factory()->create(['vote_id' => $vote->id, 'party' => 'PS', 'position' => 'favor']);
 
-        $stats = $this->service->getAllPartyStats();
+        $stats = $this->service->getAllPartyStats($this->legislature);
 
         $this->assertCount(10, $stats);
-        foreach (PartyStatsService::MAIN_PARTIES as $party) {
+        foreach (LegislatureFactory::XVII_PARTIES as $party) {
             $this->assertArrayHasKey($party, $stats);
         }
     }
@@ -51,7 +56,7 @@ class PartyStatsServiceTest extends TestCase
         $vote3 = Vote::factory()->create(['initiative_id' => $initiative->id]);
         VotePosition::factory()->create(['vote_id' => $vote3->id, 'party' => 'PS', 'position' => 'abstencao']);
 
-        $stats = $this->service->getPartyStats('PS');
+        $stats = $this->service->getPartyStats($this->legislature, 'PS');
 
         $this->assertEquals(3, $stats['total_votes']);
         $this->assertEquals(2, $stats['favor']);
@@ -65,7 +70,7 @@ class PartyStatsServiceTest extends TestCase
         $vote = Vote::factory()->create(['initiative_id' => $initiative->id]);
         VotePosition::factory()->create(['vote_id' => $vote->id, 'party' => 'BE', 'position' => 'contra']);
 
-        $stats = $this->service->getPartyStats('BE');
+        $stats = $this->service->getPartyStats($this->legislature, 'BE');
 
         $this->assertEquals(1, $stats['total_votes']);
         $this->assertEquals(0, $stats['favor']);
@@ -78,7 +83,7 @@ class PartyStatsServiceTest extends TestCase
         $vote = Vote::factory()->create(['initiative_id' => $initiative->id]);
         VotePosition::factory()->create(['vote_id' => $vote->id, 'party' => 'XPTO', 'position' => 'favor']);
 
-        $stats = $this->service->getPartyStats('XPTO');
+        $stats = $this->service->getPartyStats($this->legislature, 'XPTO');
 
         $this->assertNull($stats);
     }
@@ -89,7 +94,7 @@ class PartyStatsServiceTest extends TestCase
         $vote = Vote::factory()->create(['initiative_id' => $initiative->id]);
         VotePosition::factory()->create(['vote_id' => $vote->id, 'party' => '13-PS', 'position' => 'favor']);
 
-        $stats = $this->service->getPartyStats('PS');
+        $stats = $this->service->getPartyStats($this->legislature, 'PS');
 
         $this->assertEquals(0, $stats['total_votes']);
     }
@@ -105,7 +110,7 @@ class PartyStatsServiceTest extends TestCase
         $otherVote = Vote::factory()->create(['initiative_id' => $otherInitiative->id]);
         VotePosition::factory()->create(['vote_id' => $otherVote->id, 'party' => 'PS', 'position' => 'favor']);
 
-        $stats = $this->service->getPartyStats('PS');
+        $stats = $this->service->getPartyStats($this->legislature, 'PS');
 
         // PS voted favor on 1 government vote out of 1 government vote = 100%
         $this->assertEquals(100.0, $stats['government_alignment']);
@@ -122,7 +127,7 @@ class PartyStatsServiceTest extends TestCase
         $govVote2 = Vote::factory()->create(['initiative_id' => $govInitiative2->id]);
         VotePosition::factory()->create(['vote_id' => $govVote2->id, 'party' => 'PSD', 'position' => 'contra']);
 
-        $stats = $this->service->getPartyStats('PSD');
+        $stats = $this->service->getPartyStats($this->legislature, 'PSD');
 
         // PSD: favor on vote1 (gov), contra on vote2 (gov) = 1/2 = 50%
         $this->assertEquals(50.0, $stats['government_alignment']);
@@ -141,7 +146,7 @@ class PartyStatsServiceTest extends TestCase
         $vote3 = Vote::factory()->create(['initiative_id' => $initiative->id, 'date' => '2025-02-20', 'is_latest' => true]);
         VotePosition::factory()->create(['vote_id' => $vote3->id, 'party' => 'PS', 'position' => 'contra']);
 
-        $trend = $this->service->getMonthlyTrend('PS');
+        $trend = $this->service->getMonthlyTrend($this->legislature, 'PS');
 
         $this->assertCount(3, $trend);
         $this->assertEquals('2025-01', $trend[0]['month']);
@@ -151,7 +156,7 @@ class PartyStatsServiceTest extends TestCase
 
     public function test_returns_null_for_unknown_party(): void
     {
-        $this->assertNull($this->service->getPartyStats('XYZ'));
+        $this->assertNull($this->service->getPartyStats($this->legislature, 'XYZ'));
     }
 
     public function test_party_acronym_is_case_insensitive(): void
@@ -160,7 +165,7 @@ class PartyStatsServiceTest extends TestCase
         $vote = Vote::factory()->create(['initiative_id' => $initiative->id]);
         VotePosition::factory()->create(['vote_id' => $vote->id, 'party' => 'PS', 'position' => 'favor']);
 
-        $stats = $this->service->getPartyStats('ps');
+        $stats = $this->service->getPartyStats($this->legislature, 'ps');
 
         $this->assertNotNull($stats);
         $this->assertEquals('PS', $stats['acronym']);
@@ -179,7 +184,7 @@ class PartyStatsServiceTest extends TestCase
         $vote3 = Vote::factory()->create(['initiative_id' => $initiative->id]);
         VotePosition::factory()->create(['vote_id' => $vote3->id, 'party' => 'IL', 'position' => 'abstencao']);
 
-        $stats = $this->service->getPartyStats('IL');
+        $stats = $this->service->getPartyStats($this->legislature, 'IL');
 
         // IL: 1 favor, 1 contra, 1 abstencao = 3 total
         $this->assertEquals(33.3, $stats['favor_pct']);
