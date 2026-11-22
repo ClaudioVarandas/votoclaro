@@ -4,6 +4,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InitiativeController;
 use App\Http\Controllers\PartyController;
 use App\Http\Controllers\SitemapController;
+use App\Http\Middleware\RedirectCurrentLegislature;
 use Illuminate\Support\Facades\Route;
 
 $legislatureRoutes = function (): void {
@@ -18,6 +19,7 @@ Route::group([], $legislatureRoutes);
 Route::prefix('/legislatura/{legislature}')
     ->name('legislatures.')
     ->where(['legislature' => '[IVXLCDMivxlcdm]+'])
+    ->middleware(RedirectCurrentLegislature::class)
     ->group($legislatureRoutes);
 
 Route::get('/iniciativas/{initiative}', [InitiativeController::class, 'show'])->name('initiatives.show');
