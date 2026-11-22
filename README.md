@@ -129,5 +129,7 @@ Clarity builds citizenship.
 ## Deployment
 
 Releases are built by GitHub Actions and deployed with cv-forge.
+A push to `main` only builds the release: deploy it from the `deploy` workflow in
+`kadinho/deployments` on Gitea, since automatic deployments are off.
 The deployment manifest is `cv-forge.yml`: shared files, hooks, the PHP-FPM reload, and the
 health check at `/up`.
