@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\InitiativeStatus;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class ShowPartyRequest extends FormRequest
 {
@@ -23,7 +25,7 @@ class ShowPartyRequest extends FormRequest
             'sort' => ['nullable', 'in:date,result'],
             'direction' => ['nullable', 'in:asc,desc'],
             'page' => ['nullable', 'integer', 'min:1'],
-            'authored_status' => ['nullable', 'in:approved,rejected,in_progress'],
+            'authored_status' => ['nullable', Rule::enum(InitiativeStatus::class)],
             'authored_type' => ['nullable', 'string', 'max:5'],
             'authored_search' => ['nullable', 'string', 'max:200'],
             'authored_sort' => ['nullable', 'in:date,status'],

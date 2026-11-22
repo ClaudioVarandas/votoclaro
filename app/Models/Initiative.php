@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\InitiativeStatus;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -47,6 +48,7 @@ class Initiative extends Model
     protected function casts(): array
     {
         return [
+            'status' => InitiativeStatus::class,
             'entry_date' => 'date',
             'final_vote_date' => 'date',
             'days_to_approval' => 'integer',
@@ -60,7 +62,7 @@ class Initiative extends Model
     {
         return Attribute::make(
             get: function (): ?int {
-                if ($this->status !== 'in_progress' || ! $this->entry_date) {
+                if ($this->status !== InitiativeStatus::InProgress || ! $this->entry_date) {
                     return null;
                 }
 
@@ -76,7 +78,7 @@ class Initiative extends Model
     {
         return Attribute::make(
             get: function (): ?int {
-                if ($this->status !== 'rejected' || ! $this->entry_date || ! $this->final_vote_date) {
+                if ($this->status !== InitiativeStatus::Rejected || ! $this->entry_date || ! $this->final_vote_date) {
                     return null;
                 }
 
@@ -108,6 +110,8 @@ class Initiative extends Model
 
     public function scopeFilterByStatus(Builder $query, ?string $status): Builder
     {
+        $status = InitiativeStatus::tryFrom((string) $status);
+
         if ($status) {
             $query->where('status', $status);
         }

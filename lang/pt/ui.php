@@ -101,6 +101,8 @@ return [
         'approved' => 'Aprovado',
         'rejected' => 'Rejeitado',
         'in_progress' => 'Em Discussão',
+        'lapsed' => 'Caducado',
+        'withdrawn' => 'Retirado',
     ],
 
     // Table headers

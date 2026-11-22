@@ -46,13 +46,13 @@
                 >
                     {{ __('ui.initiatives.all_statuses') }}
                 </button>
-                @foreach (['approved', 'rejected', 'in_progress'] as $statusOption)
+                @foreach ($statuses as $statusOption)
                     <button
-                        @click="status = '{{ $statusOption }}'"
-                        :class="status === '{{ $statusOption }}' ? 'bg-sand-900 text-white dark:bg-sand-100 dark:text-sand-900' : 'bg-sand-100 text-sand-600 hover:bg-sand-200 dark:bg-sand-800 dark:text-sand-400 dark:hover:bg-sand-700'"
+                        @click="status = '{{ $statusOption->value }}'"
+                        :class="status === '{{ $statusOption->value }}' ? 'bg-sand-900 text-white dark:bg-sand-100 dark:text-sand-900' : 'bg-sand-100 text-sand-600 hover:bg-sand-200 dark:bg-sand-800 dark:text-sand-400 dark:hover:bg-sand-700'"
                         class="rounded-lg px-3 py-1.5 text-xs font-medium transition-colors"
                     >
-                        {{ __('ui.status.' . $statusOption) }}
+                        {{ $statusOption->label() }}
                     </button>
                 @endforeach
             </div>

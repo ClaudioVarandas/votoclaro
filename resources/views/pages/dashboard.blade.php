@@ -68,6 +68,28 @@
                             <div class="h-full rounded-full bg-amber-400" style="width: {{ $inProgressPct }}%"></div>
                         </div>
                     </div>
+                    @if ($lapsed > 0)
+                        <div class="space-y-1">
+                            <div class="flex items-baseline justify-between">
+                                <span class="text-xs text-sand-500 dark:text-sand-400">{{ __('ui.status.lapsed') }}</span>
+                                <span class="text-xs font-semibold text-sand-700 dark:text-sand-300">{{ number_format($lapsed) }}</span>
+                            </div>
+                            <div class="h-2 w-full overflow-hidden rounded-full bg-sand-200 dark:bg-sand-800">
+                                <div class="h-full rounded-full bg-sand-500" style="width: {{ $lapsed / $totalInitiatives * 100 }}%"></div>
+                            </div>
+                        </div>
+                    @endif
+                    @if ($withdrawn > 0)
+                        <div class="space-y-1">
+                            <div class="flex items-baseline justify-between">
+                                <span class="text-xs text-sand-500 dark:text-sand-400">{{ __('ui.status.withdrawn') }}</span>
+                                <span class="text-xs font-semibold text-sand-600 dark:text-sand-400">{{ number_format($withdrawn) }}</span>
+                            </div>
+                            <div class="h-2 w-full overflow-hidden rounded-full bg-sand-200 dark:bg-sand-800">
+                                <div class="h-full rounded-full bg-sand-400" style="width: {{ $withdrawn / $totalInitiatives * 100 }}%"></div>
+                            </div>
+                        </div>
+                    @endif
                 </div>
             </x-metric-card>
 

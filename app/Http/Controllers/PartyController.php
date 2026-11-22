@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\InitiativeStatus;
 use App\Http\Requests\ShowPartyRequest;
 use App\Models\Initiative;
 use App\Models\VotePosition;
@@ -98,12 +99,19 @@ class PartyController extends Controller
             $authoredBaseQuery->where('title', 'like', '%'.$authoredSearch.'%');
         }
 
-        $authoredStatusCounts = [
-            'total' => (clone $authoredBaseQuery)->count(),
-            'approved' => (clone $authoredBaseQuery)->where('status', 'approved')->count(),
-            'rejected' => (clone $authoredBaseQuery)->where('status', 'rejected')->count(),
-            'in_progress' => (clone $authoredBaseQuery)->where('status', 'in_progress')->count(),
-        ];
+        $countsByStatus = (clone $authoredBaseQuery)
+            ->selectRaw('status, COUNT(*) as count')
+            ->groupBy('status')
+            ->toBase()
+            ->pluck('count', 'status');
+
+        $authoredStatusCounts = ['total' => (int) $countsByStatus->sum()];
+
+        foreach (InitiativeStatus::cases() as $status) {
+            $authoredStatusCounts[$status->value] = (int) $countsByStatus->get($status->value, 0);
+        }
+
+        $authoredStatuses = InitiativeStatus::listable($countsByStatus->keys()->all());
 
         if ($authoredStatus) {
             $authoredBaseQuery->where('status', $authoredStatus);
@@ -141,6 +149,7 @@ class PartyController extends Controller
             'initiativeTypes' => $initiativeTypes,
             'authoredInitiatives' => $authoredInitiatives,
             'authoredStatusCounts' => $authoredStatusCounts,
+            'authoredStatuses' => $authoredStatuses,
             'authoredCurrentStatus' => $authoredStatus,
             'authoredCurrentType' => $authoredType,
             'authoredCurrentSearch' => $authoredSearch,

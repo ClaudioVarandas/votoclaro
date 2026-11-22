@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\InitiativeStatus;
 use App\Models\Initiative;
 use App\Models\Legislature;
 use App\Models\Vote;
@@ -13,7 +14,7 @@ class DashboardService
     private const CACHE_TTL = 3600;
 
     /**
-     * @return array{totalInitiatives: int, approved: int, rejected: int, inProgress: int, approvalRate: float}
+     * @return array{totalInitiatives: int, approved: int, rejected: int, inProgress: int, lapsed: int, withdrawn: int, approvalRate: float}
      */
     public function getInitiativeOverview(Legislature $legislature): array
     {
@@ -25,15 +26,15 @@ class DashboardService
                 ->pluck('count', 'status');
 
             $total = $statusCounts->sum();
-            $approved = $statusCounts->get('approved', 0);
-            $rejected = $statusCounts->get('rejected', 0);
-            $inProgress = $statusCounts->get('in_progress', 0);
+            $approved = $statusCounts->get(InitiativeStatus::Approved->value, 0);
 
             return [
                 'totalInitiatives' => $total,
                 'approved' => $approved,
-                'rejected' => $rejected,
-                'inProgress' => $inProgress,
+                'rejected' => $statusCounts->get(InitiativeStatus::Rejected->value, 0),
+                'inProgress' => $statusCounts->get(InitiativeStatus::InProgress->value, 0),
+                'lapsed' => $statusCounts->get(InitiativeStatus::Lapsed->value, 0),
+                'withdrawn' => $statusCounts->get(InitiativeStatus::Withdrawn->value, 0),
                 'approvalRate' => $total > 0 ? round(($approved / $total) * 100, 1) : 0,
             ];
         });
@@ -46,8 +47,8 @@ class DashboardService
                 ->forLegislature($legislature)
                 ->where('author_category', 'government')
                 ->selectRaw('COUNT(*) as total')
-                ->selectRaw("SUM(CASE WHEN status = 'approved' THEN 1 ELSE 0 END) as approved")
-                ->selectRaw("SUM(CASE WHEN status = 'rejected' THEN 1 ELSE 0 END) as rejected")
+                ->selectRaw('SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as approved', [InitiativeStatus::Approved->value])
+                ->selectRaw('SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as rejected', [InitiativeStatus::Rejected->value])
                 ->selectRaw('AVG(days_to_approval) as avg_days')
                 ->first();
         });
@@ -113,7 +114,7 @@ class DashboardService
                 ->where('author_category', 'parliamentary_group')
                 ->whereNotNull('author_party')
                 ->selectRaw('author_party, COUNT(*) as total')
-                ->selectRaw("SUM(CASE WHEN status = 'approved' THEN 1 ELSE 0 END) as approved_count")
+                ->selectRaw('SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as approved_count', [InitiativeStatus::Approved->value])
                 ->groupBy('author_party')
                 ->havingRaw('COUNT(*) >= ?', [$minThreshold])
                 ->get()

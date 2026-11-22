@@ -83,6 +83,8 @@ class PartyAuthoredInitiativesTest extends TestCase
             'approved' => 2,
             'rejected' => 1,
             'in_progress' => 1,
+            'lapsed' => 0,
+            'withdrawn' => 0,
         ]);
     }
 

@@ -159,14 +159,14 @@
                                 {{ __('ui.parties.authored_filter_all') }} ({{ $authoredStatusCounts['total'] }})
                             </a>
 
-                            @foreach (['approved', 'rejected', 'in_progress'] as $status)
-                                <a href="{{ $legislatureContext->route('parties.show', array_merge([$partySlug, 'authored_status' => $status], $authoredTabBaseParams)) . $authoredAnchor }}"
+                            @foreach ($authoredStatuses as $status)
+                                <a href="{{ $legislatureContext->route('parties.show', array_merge([$partySlug, 'authored_status' => $status->value], $authoredTabBaseParams)) . $authoredAnchor }}"
                                    @class([
                                        'rounded-full px-3 py-1 text-sm font-medium transition-colors',
-                                       'bg-republic-600 text-white dark:bg-republic-500' => $authoredCurrentStatus === $status,
-                                       'bg-sand-100 text-sand-700 hover:bg-sand-200 dark:bg-sand-800 dark:text-sand-300 dark:hover:bg-sand-700' => $authoredCurrentStatus !== $status,
+                                       'bg-republic-600 text-white dark:bg-republic-500' => $authoredCurrentStatus === $status->value,
+                                       'bg-sand-100 text-sand-700 hover:bg-sand-200 dark:bg-sand-800 dark:text-sand-300 dark:hover:bg-sand-700' => $authoredCurrentStatus !== $status->value,
                                    ])>
-                                    {{ __('ui.status.' . $status) }} ({{ $authoredStatusCounts[$status] }})
+                                    {{ $status->label() }} ({{ $authoredStatusCounts[$status->value] }})
                                 </a>
                             @endforeach
                         </div>
@@ -322,13 +322,8 @@
                                             {{ $initiative->entry_date?->format('d M Y') }}
                                         </td>
                                         <td class="px-4 py-3">
-                                            <span @class([
-                                                'inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium',
-                                                'bg-republic-100 text-republic-800 dark:bg-republic-950 dark:text-republic-300' => $initiative->status === 'approved',
-                                                'bg-parliament-100 text-parliament-800 dark:bg-parliament-950 dark:text-parliament-300' => $initiative->status === 'rejected',
-                                                'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300' => $initiative->status === 'in_progress',
-                                            ])>
-                                                {{ __('ui.status.' . $initiative->status) }}
+                                            <span @class(['inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium', $initiative->status->color()])>
+                                                {{ $initiative->status->label() }}
                                             </span>
                                         </td>
                                     </tr>
@@ -357,13 +352,8 @@
                                     <div>
                                         <dt class="text-xs font-semibold uppercase tracking-wider text-sand-500 dark:text-sand-400">{{ __('ui.parties.authored_sort_status') }}</dt>
                                         <dd class="mt-0.5">
-                                            <span @class([
-                                                'inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium',
-                                                'bg-republic-100 text-republic-800 dark:bg-republic-950 dark:text-republic-300' => $initiative->status === 'approved',
-                                                'bg-parliament-100 text-parliament-800 dark:bg-parliament-950 dark:text-parliament-300' => $initiative->status === 'rejected',
-                                                'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300' => $initiative->status === 'in_progress',
-                                            ])>
-                                                {{ __('ui.status.' . $initiative->status) }}
+                                            <span @class(['inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium', $initiative->status->color()])>
+                                                {{ $initiative->status->label() }}
                                             </span>
                                         </dd>
                                     </div>

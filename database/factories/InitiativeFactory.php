@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\InitiativeStatus;
 use App\Models\Legislature;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -23,7 +24,7 @@ class InitiativeFactory extends Factory
             'legislature_id' => fn (): int => Legislature::query()->orderByDesc('number')->value('id')
                 ?? Legislature::factory()->xvii()->withParties()->create()->id,
             'title' => fake()->sentence(8),
-            'status' => fake()->randomElement(['approved', 'rejected', 'in_progress']),
+            'status' => fake()->randomElement(InitiativeStatus::core()),
             'entry_date' => $entryDate,
             'final_vote_date' => fake()->optional(0.7)->dateTimeBetween($entryDate, 'now'),
             'days_to_approval' => fake()->optional(0.5)->numberBetween(1, 365),
@@ -38,7 +39,7 @@ class InitiativeFactory extends Factory
     public function approved(): static
     {
         return $this->state(fn () => [
-            'status' => 'approved',
+            'status' => InitiativeStatus::Approved,
             'final_vote_date' => fake()->dateTimeBetween('-1 year', 'now'),
         ]);
     }
@@ -46,7 +47,7 @@ class InitiativeFactory extends Factory
     public function rejected(): static
     {
         return $this->state(fn () => [
-            'status' => 'rejected',
+            'status' => InitiativeStatus::Rejected,
             'final_vote_date' => fake()->dateTimeBetween('-1 year', 'now'),
         ]);
     }
@@ -54,9 +55,23 @@ class InitiativeFactory extends Factory
     public function inProgress(): static
     {
         return $this->state(fn () => [
-            'status' => 'in_progress',
+            'status' => InitiativeStatus::InProgress,
             'final_vote_date' => null,
             'days_to_approval' => null,
+        ]);
+    }
+
+    public function lapsed(): static
+    {
+        return $this->state(fn () => [
+            'status' => InitiativeStatus::Lapsed,
+        ]);
+    }
+
+    public function withdrawn(): static
+    {
+        return $this->state(fn () => [
+            'status' => InitiativeStatus::Withdrawn,
         ]);
     }
 

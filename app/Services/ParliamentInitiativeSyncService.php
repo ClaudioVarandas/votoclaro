@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\InitiativeStatus;
 use App\Models\Initiative;
 use App\Models\Legislature;
 use Carbon\Carbon;
@@ -12,6 +13,10 @@ use Illuminate\Support\Facades\Http;
 
 class ParliamentInitiativeSyncService
 {
+    private const PHASE_WITHDRAWN = '648';
+
+    private const PHASE_LAPSED = '649';
+
     public function __construct(private VoteParser $voteParser) {}
 
     public function sync(Legislature $legislature): void
@@ -52,22 +57,15 @@ class ParliamentInitiativeSyncService
         $latestVote = $this->extractLatestVote($item['IniEventos'] ?? []);
         $author = $this->detectAuthor($item);
 
-        $status = 'in_progress';
         $finalVoteDate = null;
         $daysToApproval = null;
 
         if ($latestVote) {
-
             $finalVoteDate = Carbon::parse($latestVote['data']);
-
-            $status = match (strtolower($latestVote['resultado'])) {
-                'aprovado' => 'approved',
-                'rejeitado' => 'rejected',
-                default => 'in_progress',
-            };
-
             $daysToApproval = $entryDate?->diffInDays($finalVoteDate);
         }
+
+        $status = $this->determineStatus($item['IniEventos'] ?? [], $latestVote);
 
         $initiative = Initiative::updateOrCreate(
             ['id' => $initiativeId],
@@ -89,6 +87,30 @@ class ParliamentInitiativeSyncService
         );
 
         $this->syncVotes($initiative, $item['IniEventos'] ?? []);
+    }
+
+    /**
+     * The Parliament records an initiative that lapsed (at the end of the legislature, or of the
+     * government for its proposals) or was withdrawn as a phase of its own. That outcome is final,
+     * so it outranks the result of any earlier vote, such as an approval na generalidade.
+     */
+    private function determineStatus(array $events, ?array $latestVote): InitiativeStatus
+    {
+        $phases = collect($events)->pluck('CodigoFase');
+
+        if ($phases->contains(self::PHASE_LAPSED)) {
+            return InitiativeStatus::Lapsed;
+        }
+
+        if ($phases->contains(self::PHASE_WITHDRAWN)) {
+            return InitiativeStatus::Withdrawn;
+        }
+
+        return match (strtolower($latestVote['resultado'] ?? '')) {
+            'aprovado' => InitiativeStatus::Approved,
+            'rejeitado' => InitiativeStatus::Rejected,
+            default => InitiativeStatus::InProgress,
+        };
     }
 
     private function extractLatestVote(array $events): ?array

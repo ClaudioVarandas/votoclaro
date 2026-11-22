@@ -1,4 +1,5 @@
 @extends('layouts.app')
+@use('App\Enums\InitiativeStatus')
 
 <x-seo-meta
     :title="$initiative->title . ' — VotoClaro'"
@@ -55,17 +56,21 @@
                 {{-- Estado --}}
                 <div class="order-1 border-sand-200 p-4 sm:border-b sm:border-r dark:border-sand-800">
                     <div class="flex items-center gap-2 text-sand-500 dark:text-sand-400">
-                        @if ($initiative->status === 'approved')
+                        @if ($initiative->status === InitiativeStatus::Approved)
                             <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
-                        @elseif ($initiative->status === 'rejected')
+                        @elseif ($initiative->status === InitiativeStatus::Rejected)
                             <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
-                        @else
+                        @elseif ($initiative->status === InitiativeStatus::InProgress)
                             <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        @else
+                            <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
                             </svg>
                         @endif
                         <span class="text-xs font-semibold uppercase tracking-wider">{{ __('ui.initiatives.state') }}</span>
@@ -141,11 +146,11 @@
                         <span class="text-xs font-semibold uppercase tracking-wider">{{ __('ui.initiatives.duration') }}</span>
                     </div>
                     <div class="mt-2 text-sm font-medium text-sand-900 dark:text-sand-100">
-                        @if ($initiative->status === 'approved' && $initiative->days_to_approval !== null)
+                        @if ($initiative->status === InitiativeStatus::Approved && $initiative->days_to_approval !== null)
                             {{ __('ui.initiatives.approved_in_days', ['count' => $initiative->days_to_approval]) }}
-                        @elseif ($initiative->status === 'rejected' && $initiative->days_to_rejection !== null)
+                        @elseif ($initiative->status === InitiativeStatus::Rejected && $initiative->days_to_rejection !== null)
                             {{ __('ui.initiatives.rejected_in_days', ['count' => $initiative->days_to_rejection]) }}
-                        @elseif ($initiative->status === 'in_progress' && $initiative->days_in_progress !== null)
+                        @elseif ($initiative->status === InitiativeStatus::InProgress && $initiative->days_in_progress !== null)
                             {{ __('ui.initiatives.days_in_progress', ['count' => $initiative->days_in_progress]) }}
                         @else
                             {{ __('ui.initiatives.duration_pending') }}

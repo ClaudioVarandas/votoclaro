@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\InitiativeStatus;
 use App\Models\Initiative;
 use App\Services\LegislatureContext;
 use App\Services\VotePositionParserService;
@@ -13,8 +14,10 @@ class InitiativeController extends Controller
 {
     public function index(Request $request, LegislatureContext $legislatureContext): View|Response
     {
+        $legislature = $legislatureContext->activeOrFail();
+
         $initiatives = Initiative::query()
-            ->forLegislature($legislatureContext->activeOrFail())
+            ->forLegislature($legislature)
             ->filterByStatus($request->query('status'))
             ->filterByAuthorCategory($request->query('author_category'))
             ->filterBySearch($request->query('search'))
@@ -29,8 +32,16 @@ class InitiativeController extends Controller
             );
         }
 
+        $presentStatuses = Initiative::query()
+            ->forLegislature($legislature)
+            ->distinct()
+            ->toBase()
+            ->pluck('status')
+            ->all();
+
         return view('pages.initiatives.index', [
             'initiatives' => $initiatives,
+            'statuses' => InitiativeStatus::listable($presentStatuses),
         ]);
     }
 
