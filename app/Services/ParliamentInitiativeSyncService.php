@@ -10,6 +10,8 @@ use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
+use JsonMachine\Items;
+use JsonMachine\JsonDecoder\ExtJsonDecoder;
 
 class ParliamentInitiativeSyncService
 {
@@ -17,35 +19,47 @@ class ParliamentInitiativeSyncService
 
     private const PHASE_LAPSED = '649';
 
+    private const DOWNLOAD_TIMEOUT_SECONDS = 600;
+
     public function __construct(private VoteParser $voteParser) {}
 
+    /**
+     * The file of a legislature grows past 100 MB, more than json_decode fits in memory, so it is
+     * downloaded to disk and read one initiative at a time.
+     */
     public function sync(Legislature $legislature): void
     {
         if (! $legislature->initiatives_url) {
             throw new Exception("The {$legislature->sigla} legislature has no initiatives URL.");
         }
 
-        $response = Http::get($legislature->initiatives_url);
+        $path = tempnam(sys_get_temp_dir(), 'ar-initiatives-');
 
-        if (! $response->successful()) {
-            throw new Exception('Failed to fetch parliamentary JSON');
-        }
+        try {
+            $response = Http::sink($path)
+                ->timeout(self::DOWNLOAD_TIMEOUT_SECONDS)
+                ->get($legislature->initiatives_url);
 
-        $data = $response->json();
-
-        if (app()->isLocal()) {
-            $dir = base_path("data/{$legislature->sigla}/initiatives");
-            File::ensureDirectoryExists($dir);
-        }
-
-        foreach ($data as $item) {
-            if (app()->isLocal()) {
-                File::put($dir.'/'.$item['IniId'].'.json', json_encode($item, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+            if (! $response->successful()) {
+                throw new Exception('Failed to fetch parliamentary JSON');
             }
 
-            DB::transaction(function () use ($legislature, $item) {
-                $this->syncInitiative($legislature, $item);
-            });
+            if (app()->isLocal()) {
+                $dir = base_path("data/{$legislature->sigla}/initiatives");
+                File::ensureDirectoryExists($dir);
+            }
+
+            foreach (Items::fromFile($path, ['decoder' => new ExtJsonDecoder(true)]) as $item) {
+                if (app()->isLocal()) {
+                    File::put($dir.'/'.$item['IniId'].'.json', json_encode($item, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+                }
+
+                DB::transaction(function () use ($legislature, $item) {
+                    $this->syncInitiative($legislature, $item);
+                });
+            }
+        } finally {
+            File::delete($path);
         }
     }
 
