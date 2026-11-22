@@ -7,3 +7,8 @@ useDefault = true
 description = "MIME type table in symfony/mime, matched by generic-api-key; not a secret"
 targetRules = ["generic-api-key"]
 paths = ['''(^|/)vendor/symfony/mime/MimeTypes\.php$''']
+
+[[allowlists]]
+description = "Release script of halaxa/json-machine, matched by curl-auth-user; its credentials are shell variables read from the author's own .env, not a secret"
+targetRules = ["curl-auth-user"]
+paths = ['''(^|/)vendor/halaxa/json-machine/Makefile$''']
