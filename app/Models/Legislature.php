@@ -38,6 +38,11 @@ class Legislature extends Model
         return $this->hasMany(Initiative::class);
     }
 
+    public function budgets(): HasMany
+    {
+        return $this->hasMany(Budget::class);
+    }
+
     public function parties(): BelongsToMany
     {
         return $this->belongsToMany(Party::class)->withTimestamps();

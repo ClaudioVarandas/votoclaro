@@ -63,6 +63,23 @@ return [
             ]) : [],
         ],
 
+        // Tests of what only MySQL does, such as the full-text search. They are skipped unless
+        // DB_TEST_MYSQL_DATABASE points at a database that can be wiped.
+        'mysql_testing' => [
+            'driver' => 'mysql',
+            'host' => env('DB_TEST_MYSQL_HOST', '127.0.0.1'),
+            'port' => env('DB_TEST_MYSQL_PORT', '3306'),
+            'database' => env('DB_TEST_MYSQL_DATABASE'),
+            'username' => env('DB_TEST_MYSQL_USERNAME', 'root'),
+            'password' => env('DB_TEST_MYSQL_PASSWORD', ''),
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_0900_ai_ci',
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'strict' => true,
+            'engine' => null,
+        ],
+
         'mariadb' => [
             'driver' => 'mariadb',
             'url' => env('DB_URL'),

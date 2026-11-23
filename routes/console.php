@@ -12,3 +12,6 @@ Artisan::command('inspire', function () {
 // stops every process it started once schedule:run returns.
 Schedule::command('ar:initiatives:import')
     ->dailyAt('01:30');
+
+Schedule::command('ar:budget:import')
+    ->dailyAt('02:00');

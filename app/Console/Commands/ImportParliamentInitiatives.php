@@ -2,15 +2,16 @@
 
 namespace App\Console\Commands;
 
+use App\Console\Commands\Concerns\ShowsImportProgress;
 use App\Services\LegislatureContext;
 use App\Services\ParliamentInitiativeSyncService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Number;
-use Symfony\Component\Console\Helper\ProgressBar;
 
 class ImportParliamentInitiatives extends Command
 {
+    use ShowsImportProgress;
+
     protected $signature = 'ar:initiatives:import {--legislature= : Sigla of the legislature, e.g. XVII (default: the current one)}';
 
     protected $description = 'Import parliamentary initiatives from JSON source';
@@ -27,48 +28,22 @@ class ImportParliamentInitiatives extends Command
         }
 
         $this->info("Downloading the initiatives of the {$legislature->sigla} legislature...");
-        $progressBar = null;
 
         try {
-            $imported = $syncService->sync(
-                $legislature,
-                function (int $fileSize) use (&$progressBar): void {
-                    $this->line('Downloaded '.Number::fileSize($fileSize, precision: 1).'. Importing...');
-                    $progressBar = $this->startProgressBar($fileSize);
-                },
-                function (int $bytesRead, int $imported) use (&$progressBar): void {
-                    $progressBar->setMessage((string) $imported);
-                    $progressBar->setProgress($bytesRead);
-                },
-            );
+            $imported = $syncService->sync($legislature, $this->onDownloaded('initiatives'), $this->onImported());
 
-            $progressBar->finish();
-            $this->newLine();
+            $this->finishImportProgress();
 
             Artisan::call('cache:clear');
 
             $this->info("Sync completed: {$imported} initiatives imported.");
         } catch (\Throwable $e) {
-            $progressBar?->clear();
+            $this->abortImportProgress();
             $this->error($e->getMessage());
 
             return self::FAILURE;
         }
 
         return self::SUCCESS;
-    }
-
-    /**
-     * The total number of initiatives is only known once the file is read, so the bar measures
-     * the bytes parsed and shows the count imported so far.
-     */
-    private function startProgressBar(int $fileSize): ProgressBar
-    {
-        $progressBar = $this->output->createProgressBar($fileSize);
-        $progressBar->setFormat(' %percent:3s%% [%bar%] %message% initiatives, %elapsed:6s%');
-        $progressBar->setMessage('0');
-        $progressBar->start();
-
-        return $progressBar;
     }
 }

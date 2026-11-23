@@ -50,7 +50,7 @@ class LegislatureFactory extends Factory
             $legislature->parties()->attach(
                 collect($acronyms)->map(fn (string $acronym): int => Party::firstOrCreate(
                     ['acronym' => $acronym],
-                    ['name' => $acronym],
+                    ['name' => PartyFactory::NAMES[$acronym] ?? $acronym],
                 )->id)
             );
         });

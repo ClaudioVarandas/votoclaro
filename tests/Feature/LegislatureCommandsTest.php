@@ -125,7 +125,7 @@ class LegislatureCommandsTest extends TestCase
             $this->initiative('900002'),
             $this->initiative('900003'),
         ])]);
-        $downloadsBefore = glob(sys_get_temp_dir().'/ar-initiatives-*');
+        $downloadsBefore = glob(sys_get_temp_dir().'/ar-download-*');
 
         $this->artisan('ar:initiatives:import')
             ->expectsOutputToContain('Importing...')
@@ -133,7 +133,7 @@ class LegislatureCommandsTest extends TestCase
             ->assertSuccessful();
 
         $this->assertEqualsCanonicalizing(['900001', '900002', '900003'], Initiative::query()->pluck('id')->all());
-        $this->assertSame($downloadsBefore, glob(sys_get_temp_dir().'/ar-initiatives-*'));
+        $this->assertSame($downloadsBefore, glob(sys_get_temp_dir().'/ar-download-*'));
     }
 
     public function test_sync_reports_its_progress_through_the_file(): void
@@ -179,11 +179,11 @@ class LegislatureCommandsTest extends TestCase
     {
         Legislature::factory()->xvii()->create(['initiatives_url' => self::INITIATIVES_URL]);
         Http::fake([self::INITIATIVES_URL => Http::response('Service Unavailable', 503)]);
-        $downloadsBefore = glob(sys_get_temp_dir().'/ar-initiatives-*');
+        $downloadsBefore = glob(sys_get_temp_dir().'/ar-download-*');
 
         $this->artisan('ar:initiatives:import')->assertFailed();
 
-        $this->assertSame($downloadsBefore, glob(sys_get_temp_dir().'/ar-initiatives-*'));
+        $this->assertSame($downloadsBefore, glob(sys_get_temp_dir().'/ar-download-*'));
     }
 
     public function test_initiatives_import_fails_without_any_legislature(): void

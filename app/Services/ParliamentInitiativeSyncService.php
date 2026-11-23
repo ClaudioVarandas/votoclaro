@@ -10,7 +10,6 @@ use Closure;
 use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Http;
 use JsonMachine\Items;
 use JsonMachine\JsonDecoder\ExtJsonDecoder;
 
@@ -20,14 +19,9 @@ class ParliamentInitiativeSyncService
 
     private const PHASE_LAPSED = '649';
 
-    private const DOWNLOAD_TIMEOUT_SECONDS = 600;
-
-    public function __construct(private VoteParser $voteParser) {}
+    public function __construct(private VoteParser $voteParser, private ParliamentFileDownloader $downloader) {}
 
     /**
-     * The file of a legislature grows past 100 MB, more than json_decode fits in memory, so it is
-     * downloaded to disk and read one initiative at a time.
-     *
      * @param  (Closure(int $fileSize): void)|null  $onDownloaded
      * @param  (Closure(int $bytesRead, int $imported): void)|null  $onImported  called after each initiative
      * @return int the number of initiatives imported
@@ -38,17 +32,7 @@ class ParliamentInitiativeSyncService
             throw new Exception("The {$legislature->sigla} legislature has no initiatives URL.");
         }
 
-        $path = tempnam(sys_get_temp_dir(), 'ar-initiatives-');
-
-        try {
-            $response = Http::sink($path)
-                ->timeout(self::DOWNLOAD_TIMEOUT_SECONDS)
-                ->get($legislature->initiatives_url);
-
-            if (! $response->successful()) {
-                throw new Exception('Failed to fetch parliamentary JSON');
-            }
-
+        return $this->downloader->withDownload($legislature->initiatives_url, function (string $path) use ($legislature, $onDownloaded, $onImported): int {
             $onDownloaded?->__invoke(filesize($path));
 
             if (app()->isLocal()) {
@@ -73,9 +57,7 @@ class ParliamentInitiativeSyncService
             }
 
             return $imported;
-        } finally {
-            File::delete($path);
-        }
+        });
     }
 
     private function syncInitiative(Legislature $legislature, array $item): void
