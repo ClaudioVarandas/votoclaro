@@ -4,10 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Enums\BudgetProposalStatus;
 use App\Http\Requests\IndexBudgetProposalsRequest;
+use App\Models\Budget;
 use App\Models\BudgetProposal;
+use App\Models\BudgetTheme;
+use App\Models\BudgetTopic;
 use App\Services\BudgetMatrixService;
 use App\Services\BudgetResolver;
 use App\Services\BudgetStatsService;
+use App\Services\LegislatureContext;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
@@ -15,11 +19,19 @@ class BudgetProposalController extends Controller
 {
     private const PER_PAGE = 50;
 
-    public function __construct(private BudgetResolver $resolver, private BudgetStatsService $budgetStats) {}
+    public function __construct(
+        private BudgetResolver $resolver,
+        private BudgetStatsService $budgetStats,
+        private LegislatureContext $legislatureContext,
+    ) {}
 
     public function index(IndexBudgetProposalsRequest $request, BudgetMatrixService $matrix): View
     {
-        $budget = $this->resolver->budget($request->route('year'), 'budgets.proposals.index');
+        $topicSlug = $request->route('topic');
+        $budget = $topicSlug !== null
+            ? $this->resolver->budget($request->route('year'), 'budgets.topics.show', ['topic' => $topicSlug])
+            : $this->resolver->budget($request->route('year'), 'budgets.proposals.index');
+        $topic = $topicSlug !== null ? $budget->topics()->where('slug', $topicSlug)->firstOrFail() : null;
         $themes = $this->budgetStats->themes($budget);
         $theme = $themes->firstWhere('slug', $request->validated('tema'));
         $party = strtoupper((string) $request->validated('partido')) ?: null;
@@ -27,6 +39,7 @@ class BudgetProposalController extends Controller
 
         $filtered = BudgetProposal::query()
             ->where('budget_id', $budget->id)
+            ->when($topic, fn ($query) => $query->whereRelation('topics', 'budget_topics.id', $topic->id))
             ->when($theme, fn ($query) => $query->whereRelation('themes', 'budget_themes.id', $theme->id))
             ->when($party, fn ($query) => $query->whereRelation('parties', 'acronym', $party))
             ->when($status, fn ($query) => $query->where('status', $status))
@@ -52,6 +65,10 @@ class BudgetProposalController extends Controller
             'parties' => $parties,
             'themes' => $themes,
             'theme' => $theme,
+            'heading' => $this->heading($budget, $topic, $theme),
+            'baseUrl' => $topic !== null
+                ? $this->legislatureContext->route('budgets.topics.show', ['year' => $budget->year, 'topic' => $topic->slug], $budget->legislature)
+                : $this->legislatureContext->route('budgets.proposals.index', ['year' => $budget->year], $budget->legislature),
             'proposingParties' => collect($this->budgetStats->parties($budget))->where('proposed', '>', 0)->pluck('acronym')->all(),
             'statuses' => BudgetProposalStatus::listable($presentStatuses),
             'filters' => [
@@ -74,5 +91,36 @@ class BudgetProposalController extends Controller
             'proposal' => $proposal,
             'parties' => $this->budgetStats->partyOrder($budget)->all(),
         ]);
+    }
+
+    /**
+     * The title of a matrix narrowed to a topic or a theme, the topic first; null for the full one.
+     *
+     * @return array{eyebrow: string, title: string, subtitle: string}|null
+     */
+    private function heading(Budget $budget, ?BudgetTopic $topic, ?BudgetTheme $theme): ?array
+    {
+        $budgetName = __('ui.budget.name', ['year' => $budget->year]);
+
+        return match (true) {
+            $topic !== null => [
+                'eyebrow' => __('ui.budget.topics.eyebrow'),
+                'title' => $topic->label,
+                'subtitle' => trans_choice('ui.budget.topics.subtitle', $topic->proposals_count, [
+                    'count' => number_format($topic->proposals_count, 0, ',', '.'),
+                    'parties' => $topic->parties_count,
+                    'budget' => $budgetName,
+                ]),
+            ],
+            $theme !== null => [
+                'eyebrow' => __('ui.budget.matrix.theme'),
+                'title' => $theme->name,
+                'subtitle' => trans_choice('ui.budget.matrix.theme_subtitle', $theme->proposals_count, [
+                    'count' => number_format($theme->proposals_count, 0, ',', '.'),
+                    'budget' => $budgetName,
+                ]),
+            ],
+            default => null,
+        };
     }
 }

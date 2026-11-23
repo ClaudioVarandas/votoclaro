@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 <x-seo-meta
-    :title="($theme ? $theme->name : __('ui.budget.matrix.title')) . ' — ' . __('ui.budget.short_name', ['year' => $budget->year]) . ' — VotoClaro'"
+    :title="($heading['title'] ?? __('ui.budget.matrix.title')) . ' — ' . __('ui.budget.short_name', ['year' => $budget->year]) . ' — VotoClaro'"
     :description="__('ui.budget.description')"
 />
 
@@ -13,26 +13,26 @@
                 <li aria-hidden="true">/</li>
                 <li><a href="{{ $legislatureContext->route('budgets.show', ['year' => $budget->year]) }}" class="transition-colors hover:text-republic-700 dark:hover:text-republic-400">{{ __('ui.budget.short_name', ['year' => $budget->year]) }}</a></li>
                 <li aria-hidden="true">/</li>
-                @if ($theme)
+                @if ($heading)
                     <li><a href="{{ $legislatureContext->route('budgets.proposals.index', ['year' => $budget->year]) }}" class="transition-colors hover:text-republic-700 dark:hover:text-republic-400">{{ __('ui.budget.matrix.title') }}</a></li>
                     <li aria-hidden="true">/</li>
-                    <li>{{ $theme->name }}</li>
+                    <li>{{ $heading['title'] }}</li>
                 @else
                     <li>{{ __('ui.budget.matrix.title') }}</li>
                 @endif
             </ol>
         </nav>
 
-        @if ($theme)
+        @if ($heading)
             <div>
-                <p class="text-xs font-semibold uppercase tracking-wider text-republic-700 dark:text-republic-400">{{ __('ui.budget.matrix.theme') }}</p>
+                <p class="text-xs font-semibold uppercase tracking-wider text-republic-700 dark:text-republic-400">{{ $heading['eyebrow'] }}</p>
                 <div class="mt-2 flex items-start gap-3 sm:items-center">
                     <span class="inline-flex shrink-0 rounded-xl bg-republic-100 p-2 text-republic-700 sm:p-2.5 dark:bg-republic-950 dark:text-republic-400">
-                        <x-budget-theme-icon :theme="$theme->name" class="size-6 sm:size-7" />
+                        <x-budget-theme-icon :theme="$heading['title']" class="size-6 sm:size-7" />
                     </span>
-                    <h1 class="font-serif text-3xl font-bold tracking-tight text-sand-900 sm:text-4xl dark:text-sand-100">{{ $theme->name }}</h1>
+                    <h1 class="font-serif text-3xl font-bold tracking-tight text-sand-900 sm:text-4xl dark:text-sand-100">{{ $heading['title'] }}</h1>
                 </div>
-                <p class="mt-3 text-sand-500 dark:text-sand-400">{{ trans_choice('ui.budget.matrix.theme_subtitle', $theme->proposals_count, ['count' => number_format($theme->proposals_count, 0, ',', '.'), 'budget' => __('ui.budget.name', ['year' => $budget->year])]) }}</p>
+                <p class="mt-3 text-sand-500 dark:text-sand-400">{{ $heading['subtitle'] }}</p>
             </div>
         @else
             <div>
@@ -41,7 +41,7 @@
             </div>
         @endif
 
-        <form method="GET" action="{{ $legislatureContext->route('budgets.proposals.index', ['year' => $budget->year]) }}"
+        <form method="GET" action="{{ $baseUrl }}"
               class="grid grid-cols-1 gap-3 rounded-2xl border border-sand-200 bg-white p-4 sm:grid-cols-2 lg:grid-cols-5 dark:border-sand-800 dark:bg-sand-900">
             @php $field = 'w-full rounded-xl border border-sand-200 bg-sand-50 px-3 py-2.5 text-sm text-sand-900 focus:border-republic-500 focus:outline-none focus:ring-1 focus:ring-republic-500 dark:border-sand-700 dark:bg-sand-950 dark:text-sand-100'; @endphp
             <div class="sm:col-span-2">
@@ -78,7 +78,7 @@
             <div class="flex items-center gap-3 sm:col-span-2 lg:col-span-5">
                 <button type="submit" class="rounded-xl bg-republic-600 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-republic-700 dark:bg-republic-500 dark:hover:bg-republic-600">{{ __('ui.budget.matrix.filter') }}</button>
                 @if (array_filter($filters))
-                    <a href="{{ $legislatureContext->route('budgets.proposals.index', ['year' => $budget->year]) }}" class="text-sm text-sand-600 underline hover:text-republic-700 dark:text-sand-400 dark:hover:text-republic-400">{{ __('ui.budget.matrix.clear') }}</a>
+                    <a href="{{ $baseUrl }}" class="text-sm text-sand-600 underline hover:text-republic-700 dark:text-sand-400 dark:hover:text-republic-400">{{ __('ui.budget.matrix.clear') }}</a>
                 @endif
                 <p class="ml-auto text-sm text-sand-500 dark:text-sand-400" aria-live="polite">{{ trans_choice('ui.budget.matrix.results', $proposals->total(), ['count' => number_format($proposals->total(), 0, ',', '.')]) }}</p>
             </div>

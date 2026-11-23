@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Budget;
 use App\Models\BudgetProposal;
+use App\Models\BudgetTopic;
 use App\Services\LegislatureContext;
 use App\Services\PartyStatsService;
 use Illuminate\Http\Response;
@@ -39,7 +40,15 @@ class SitemapController
             ->get(['id', 'budget_id', 'slug'])
             ->map(fn (BudgetProposal $proposal): string => route('budgets.proposals.show', ['year' => $proposal->budget->year, 'proposal' => $proposal->slug]));
 
-        $urls = collect($staticRoutes)->merge($partyRoutes)->merge($budgetRoutes)->merge($proposalRoutes);
+        $topicRoutes = BudgetTopic::query()
+            ->whereIn('budget_id', $budgets->pluck('id'))
+            ->where('parties_count', '>', 1)
+            ->with('budget:id,year')
+            ->orderBy('id')
+            ->get(['id', 'budget_id', 'slug'])
+            ->map(fn (BudgetTopic $topic): string => route('budgets.topics.show', ['year' => $topic->budget->year, 'topic' => $topic->slug]));
+
+        $urls = collect($staticRoutes)->merge($partyRoutes)->merge($budgetRoutes)->merge($topicRoutes)->merge($proposalRoutes);
 
         $xml = '<?xml version="1.0" encoding="UTF-8"?>'."\n";
         $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'."\n";

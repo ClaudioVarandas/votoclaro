@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\View\Components\BudgetOutcomeIcon;
 use App\View\Components\BudgetOutcomeStat;
 use App\View\Components\BudgetThemeIcon;
+use App\View\Components\ProgressBar;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
@@ -71,5 +72,31 @@ class BudgetIconsTest extends TestCase
         $this->blade('<dl><x-budget-outcome-stat compact outcome="approved" label="Aprovadas" :value="1234" /></dl>')
             ->assertSee('1.234')
             ->assertSee('text-lg', false);
+    }
+
+    public function test_a_heading_can_name_its_icon(): void
+    {
+        $this->assertSame('chat', (new BudgetThemeIcon(icon: 'chat'))->icon());
+        $this->assertSame('tag', (new BudgetThemeIcon(icon: 'nonexistent'))->icon());
+    }
+
+    public function test_the_progress_bar_fills_in_steps_of_five_percent(): void
+    {
+        $this->assertSame('w-12/20', (new ProgressBar(0.62))->widthClass());
+        $this->assertSame('w-0', (new ProgressBar(0))->widthClass());
+        $this->assertSame('w-full', (new ProgressBar(1.4))->widthClass(), 'Clamped to full.');
+        $this->assertSame('w-0', (new ProgressBar(-0.2))->widthClass(), 'Clamped to empty.');
+    }
+
+    public function test_the_progress_bar_takes_a_color_and_falls_back_to_green(): void
+    {
+        $this->assertStringContainsString('parliament', (new ProgressBar(0.5, 'parliament'))->colorClass());
+        $this->assertStringContainsString('sky', (new ProgressBar(0.5, 'blue'))->colorClass());
+        $this->assertStringContainsString('republic', (new ProgressBar(0.5, 'purple'))->colorClass());
+
+        $this->blade('<x-progress-bar :share="0.5" color="amber" class="mt-2" />')
+            ->assertSee('aria-hidden="true"', false)
+            ->assertSee('w-10/20', false)
+            ->assertSee('mt-2', false);
     }
 }

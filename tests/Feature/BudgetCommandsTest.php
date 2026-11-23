@@ -7,6 +7,7 @@ use App\Enums\BudgetVotePosition;
 use App\Enums\BudgetVoteStage;
 use App\Models\Budget;
 use App\Models\BudgetProposal;
+use App\Models\BudgetTopic;
 use App\Models\BudgetVote;
 use App\Models\Initiative;
 use App\Models\Legislature;
@@ -97,7 +98,20 @@ class BudgetCommandsTest extends TestCase
             ->expectsOutputToContain('Downloading the amendments to the 2027 budget...')
             ->expectsOutputToContain('Importing...')
             ->expectsOutputToContain('Sync completed: 11 amendments imported.')
+            ->expectsOutputToContain('Topics found:')
             ->assertSuccessful();
+    }
+
+    public function test_import_finds_the_menopause_among_the_topics(): void
+    {
+        $this->importFixture();
+
+        $topic = BudgetTopic::query()->where('slug', 'menopausa')->firstOrFail();
+        $this->assertSame(5, $topic->proposals_count);
+        $this->assertEqualsCanonicalizing(
+            ['1907C', '2211C', '2215C', '2772C', '769C'],
+            $topic->proposals()->pluck('number')->all(),
+        );
     }
 
     public function test_import_matches_the_menopause_votes_published_by_vidas(): void

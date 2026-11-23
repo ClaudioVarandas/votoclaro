@@ -82,6 +82,7 @@ class BudgetPagesTest extends TestCase
                     && $byParty['PSD']['approved'] === 1
                     && $byParty['PSD']['others_voted'] === 2
                     && $byParty['PSD']['against_others'] === 1
+                    && $byParty['PSD']['against_rate'] === 50.0
                     && $byParty['PS']['proposed'] === 2
                     && $byParty['PS']['approved'] === 1
                     && $byParty['PS']['approval_rate'] === 50.0

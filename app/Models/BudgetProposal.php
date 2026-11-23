@@ -73,6 +73,11 @@ class BudgetProposal extends Model
         return $this->belongsToMany(BudgetTheme::class)->withTimestamps();
     }
 
+    public function topics(): BelongsToMany
+    {
+        return $this->belongsToMany(BudgetTopic::class);
+    }
+
     public function votes(): HasMany
     {
         return $this->hasMany(BudgetVote::class)->orderBy('sequence');

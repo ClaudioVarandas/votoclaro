@@ -48,4 +48,9 @@ class Budget extends Model
     {
         return $this->hasMany(BudgetProposal::class);
     }
+
+    public function topics(): HasMany
+    {
+        return $this->hasMany(BudgetTopic::class);
+    }
 }

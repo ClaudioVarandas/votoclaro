@@ -18,6 +18,7 @@ class LegislatureSwitcher extends Component
         'budgets.show',
         'budgets.proposals.index',
         'budgets.proposals.show',
+        'budgets.topics.show',
         'parties.index',
         'parties.show',
     ];
@@ -27,7 +28,7 @@ class LegislatureSwitcher extends Component
      *
      * @var list<string>
      */
-    private const BUDGET_PAGES = ['budgets.show', 'budgets.proposals.index', 'budgets.proposals.show'];
+    private const BUDGET_PAGES = ['budgets.show', 'budgets.proposals.index', 'budgets.proposals.show', 'budgets.topics.show'];
 
     public function __construct(private LegislatureContext $legislatureContext) {}
 

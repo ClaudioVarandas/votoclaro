@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Budget;
 use App\Models\BudgetProposal;
+use App\Models\BudgetTopic;
 use App\Models\Legislature;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -49,5 +50,17 @@ class SitemapTest extends TestCase
             ->assertSee(route('budgets.proposals.index', 2027))
             ->assertSee(route('budgets.proposals.show', ['year' => 2027, 'proposal' => $proposal->slug]))
             ->assertDontSee($oldProposal->slug);
+    }
+
+    public function test_sitemap_lists_the_topics_more_than_one_party_proposed_on(): void
+    {
+        $current = Legislature::factory()->xvii()->create();
+        $budget = Budget::factory()->create(['legislature_id' => $current->id, 'year' => 2027]);
+        BudgetTopic::factory()->create(['budget_id' => $budget->id, 'slug' => 'habitacao', 'parties_count' => 4]);
+        BudgetTopic::factory()->create(['budget_id' => $budget->id, 'slug' => 'pombais', 'parties_count' => 1]);
+
+        $this->get(route('sitemap'))
+            ->assertSee(route('budgets.topics.show', ['year' => 2027, 'topic' => 'habitacao']))
+            ->assertDontSee('pombais');
     }
 }

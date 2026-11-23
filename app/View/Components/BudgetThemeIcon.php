@@ -7,28 +7,29 @@ use Illuminate\Contracts\View\View;
 use Illuminate\View\Component;
 
 /**
- * An icon for a theme of the Parliament. The themes follow the parliamentary committees, whose
- * names change between legislatures, so the icon comes from the words in the name rather than
- * from a list of names; a theme no word matches gets a plain tag.
+ * An icon for a theme of the Parliament or a topic of the amendments. The themes follow the
+ * parliamentary committees, whose names change between legislatures, and the topics follow the
+ * titles, so the icon comes from the words in the name rather than from a list of names; a name
+ * no word matches gets a plain tag.
  */
 class BudgetThemeIcon extends Component
 {
     /** @var array<string, list<string>> icon => words of the slug, the first icon matching wins */
     private const KEYWORDS = [
-        'heart' => ['saude'],
-        'academic-cap' => ['educacao', 'ciencia', 'ensino'],
-        'home' => ['habitacao', 'infraestruturas', 'mobilidade'],
-        'bolt' => ['ambiente', 'energia', 'clima'],
-        'sun' => ['agricultura', 'pescas', 'mar'],
-        'briefcase' => ['trabalho', 'seguranca-social', 'inclusao'],
-        'musical-note' => ['cultura', 'comunicacao', 'desporto', 'juventude'],
-        'shield' => ['defesa'],
-        'globe' => ['negocios-estrangeiros', 'comunidades'],
+        'heart' => ['saude', 'sns', 'hospital', 'doenca', 'medicos', 'medicamentos', 'enfermeiros'],
+        'academic-cap' => ['educacao', 'ciencia', 'ensino', 'escolas', 'professores', 'estudantes', 'bolsas', 'propinas', 'creches'],
+        'home' => ['habitacao', 'infraestruturas', 'mobilidade', 'casas', 'casa', 'alojamento'],
+        'bolt' => ['ambiente', 'energia', 'clima', 'agua', 'energetica'],
+        'sun' => ['agricultura', 'pescas', 'pesca', 'mar', 'animais', 'florestas'],
+        'briefcase' => ['trabalho', 'seguranca-social', 'inclusao', 'trabalhadores', 'pensoes', 'suplemento', 'salario', 'aposentacao'],
+        'musical-note' => ['cultura', 'comunicacao', 'desporto', 'juventude', 'artes', 'patrimonio'],
+        'shield' => ['defesa', 'psp', 'gnr', 'forcas-de-seguranca', 'forcas-armadas', 'militares', 'bombeiros', 'protecao-civil'],
+        'globe' => ['negocios-estrangeiros', 'comunidades', 'estrangeiros', 'emigrantes'],
         'flag' => ['europeus', 'europa'],
-        'chart-bar' => ['economia', 'coesao'],
-        'currency-euro' => ['orcamento', 'financas'],
-        'scale' => ['constitucionais', 'direitos', 'justica'],
-        'building-library' => ['reforma-do-estado', 'poder-local', 'administracao'],
+        'chart-bar' => ['economia', 'coesao', 'empresas', 'precos'],
+        'currency-euro' => ['orcamento', 'financas', 'irs', 'iva', 'irc', 'imi', 'imt', 'isp', 'imposto', 'beneficios-fiscais'],
+        'scale' => ['constitucionais', 'direitos', 'justica', 'tribunais', 'prisoes'],
+        'building-library' => ['reforma-do-estado', 'poder-local', 'administracao', 'municipios', 'autarquias'],
     ];
 
     private const PATHS = [
@@ -46,13 +47,21 @@ class BudgetThemeIcon extends Component
         'currency-euro' => 'M14.25 7.756a4.5 4.5 0 1 0 0 8.488M7.5 10.5h5.25m-5.25 3h5.25M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z',
         'scale' => 'M12 3v17.25m0 0c-1.472 0-2.882.265-4.185.75M12 20.25c1.472 0 2.882.265 4.185.75M18.75 4.97A48.416 48.416 0 0 0 12 4.5c-2.291 0-4.545.16-6.75.47m13.5 0c1.01.143 2.01.317 3 .52m-3-.52 2.62 10.726c.122.499-.106 1.028-.589 1.202a5.988 5.988 0 0 1-2.031.352 5.988 5.988 0 0 1-2.031-.352c-.483-.174-.711-.703-.59-1.202L18.75 4.971Zm-16.5.52c.99-.203 1.99-.377 3-.52m0 0 2.62 10.726c.122.499-.106 1.028-.589 1.202a5.989 5.989 0 0 1-2.031.352 5.989 5.989 0 0 1-2.031-.352c-.483-.174-.711-.703-.59-1.202L5.25 4.971Z',
         'building-library' => 'M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.36 48.36 0 0 0 12 9.75c-2.551 0-5.056.2-7.5.582V21M3 21h18M12 6.75h.008v.008H12V6.75Z',
+        'chat' => 'M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 0 1-.825-.242m9.345-8.334a2.126 2.126 0 0 0-.476-.095 48.64 48.64 0 0 0-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0 0 11.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155',
         'tag' => 'M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3ZM6 6h.008v.008H6V6Z',
     ];
 
-    public function __construct(public string $theme) {}
+    /**
+     * @param  string|null  $icon  an icon by its name, for a heading that is no theme
+     */
+    public function __construct(public string $theme = '', public ?string $icon = null) {}
 
     public function icon(): string
     {
+        if ($this->icon !== null && isset(self::PATHS[$this->icon])) {
+            return $this->icon;
+        }
+
         $slug = str($this->theme)->slug()->toString();
 
         foreach (self::KEYWORDS as $icon => $words) {

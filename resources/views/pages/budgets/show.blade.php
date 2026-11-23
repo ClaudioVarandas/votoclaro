@@ -39,65 +39,114 @@
         </section>
 
         {{-- Parties --}}
-        <section class="space-y-3" aria-labelledby="parties-title">
-            <div>
-                <h2 id="parties-title" class="font-serif text-xl font-bold text-sand-900 dark:text-sand-100">{{ __('ui.budget.parties_title') }}</h2>
-                <p class="mt-1 text-sm text-sand-500 dark:text-sand-400">{{ __('ui.budget.parties_intro') }}</p>
-            </div>
-            <div class="overflow-x-auto rounded-2xl border border-sand-200 bg-white dark:border-sand-800 dark:bg-sand-900">
+        <x-budget-section id="parties-title" :title="__('ui.budget.parties_title')" :intro="__('ui.budget.parties_intro')" icon="building-library">
+            <div class="-mx-5 overflow-x-auto sm:-mx-6">
                 <table class="w-full text-sm">
                     <thead>
-                        <tr class="border-b border-sand-200 text-left text-xs font-semibold uppercase tracking-wider text-sand-500 dark:border-sand-800 dark:text-sand-400">
-                            <th scope="col" class="px-4 py-3">{{ __('ui.budget.party') }}</th>
-                            <th scope="col" class="px-4 py-3 text-right">{{ __('ui.budget.proposed') }}</th>
-                            <th scope="col" class="px-4 py-3 text-right">{{ __('ui.budget.approved') }}</th>
-                            <th scope="col" class="px-4 py-3 text-right">{{ __('ui.budget.approval_rate') }}</th>
-                            <th scope="col" class="px-4 py-3 text-right">{{ __('ui.budget.against_others') }}</th>
+                        <tr class="border-y border-sand-200 bg-sand-50 text-left text-xs font-semibold uppercase tracking-wider text-sand-500 dark:border-sand-800 dark:bg-sand-950 dark:text-sand-400">
+                            <th scope="col" class="py-3 pr-2 pl-5 sm:px-6">{{ __('ui.budget.party') }}</th>
+                            <th scope="col" class="px-2 py-3 text-right sm:px-4">{{ __('ui.budget.proposed') }}</th>
+                            <th scope="col" class="px-2 py-3 sm:w-1/4 sm:px-4">{{ __('ui.budget.approved') }}</th>
+                            <th scope="col" class="py-3 pr-5 pl-2 sm:w-1/3 sm:px-6"><span class="sm:hidden">{{ __('ui.budget.against_others_short') }}</span><span class="hidden sm:inline">{{ __('ui.budget.against_others') }}</span></th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-sand-100 dark:divide-sand-800">
                         @foreach ($parties as $party)
-                            <tr>
-                                <th scope="row" class="px-4 py-3 text-left font-semibold">
+                            <tr class="transition-colors hover:bg-sand-50 dark:hover:bg-sand-950">
+                                <th scope="row" class="py-3 pr-2 pl-5 text-left sm:px-6">
                                     @if ($party['proposed'] > 0)
-                                        <a href="{{ $legislatureContext->route('budgets.proposals.index', ['year' => $budget->year, 'partido' => strtolower($party['acronym'])]) }}" class="text-republic-700 hover:underline dark:text-republic-400">{{ $party['acronym'] }}</a>
+                                        <a href="{{ $legislatureContext->route('budgets.proposals.index', ['year' => $budget->year, 'partido' => strtolower($party['acronym'])]) }}"
+                                           class="inline-flex justify-center whitespace-nowrap rounded-lg sm:min-w-14 bg-sand-100 px-2.5 py-1 text-sm font-bold text-sand-900 transition-colors hover:bg-republic-100 hover:text-republic-800 dark:bg-sand-800 dark:text-sand-100 dark:hover:bg-republic-950 dark:hover:text-republic-300">{{ $party['acronym'] }}</a>
                                     @else
-                                        <span class="text-sand-900 dark:text-sand-100">{{ $party['acronym'] }}</span>
+                                        <span class="inline-flex justify-center whitespace-nowrap rounded-lg sm:min-w-14 bg-sand-100 px-2.5 py-1 text-sm font-bold text-sand-900 dark:bg-sand-800 dark:text-sand-100">{{ $party['acronym'] }}</span>
                                     @endif
                                 </th>
-                                <td class="px-4 py-3 text-right tabular-nums text-sand-700 dark:text-sand-300">{{ number_format($party['proposed'], 0, ',', '.') }}</td>
-                                <td class="px-4 py-3 text-right tabular-nums text-sand-700 dark:text-sand-300">{{ number_format($party['approved'], 0, ',', '.') }}</td>
-                                <td class="px-4 py-3 text-right tabular-nums text-sand-700 dark:text-sand-300">{{ $party['proposed'] > 0 ? number_format($party['approval_rate'], 1, ',', '.') . '%' : '—' }}</td>
-                                <td class="px-4 py-3 text-right tabular-nums text-sand-700 dark:text-sand-300">
-                                    {{ number_format($party['against_others'], 0, ',', '.') }}
-                                    <span class="text-sand-400 dark:text-sand-500">/ {{ number_format($party['others_voted'], 0, ',', '.') }}</span>
+                                <td class="px-2 py-3 text-right font-serif text-base font-bold tabular-nums sm:px-4 sm:text-lg text-sand-900 dark:text-sand-100">{{ number_format($party['proposed'], 0, ',', '.') }}</td>
+                                <td class="px-2 py-3 sm:px-4">
+                                    @if ($party['proposed'] > 0)
+                                        <div class="flex items-baseline justify-between gap-2">
+                                            <span class="font-semibold tabular-nums text-republic-700 dark:text-republic-400">{{ number_format($party['approval_rate'], 1, ',', '.') }}%</span>
+                                            <span class="hidden text-xs tabular-nums text-sand-500 sm:inline dark:text-sand-400">{{ __('ui.budget.of_count', ['part' => number_format($party['approved'], 0, ',', '.'), 'total' => number_format($party['proposed'], 0, ',', '.')]) }}</span>
+                                        </div>
+                                        <x-progress-bar :share="$party['approval_rate'] / 100" class="mt-1.5" />
+                                    @else
+                                        <span class="text-sand-400 dark:text-sand-600">—</span>
+                                    @endif
+                                </td>
+                                <td class="py-3 pr-5 pl-2 sm:px-6">
+                                    @if ($party['others_voted'] > 0)
+                                        <div class="flex items-baseline justify-between gap-2">
+                                            <span class="font-semibold tabular-nums text-parliament-700 dark:text-parliament-400">{{ number_format($party['against_rate'], 1, ',', '.') }}%</span>
+                                            <span class="hidden text-xs tabular-nums text-sand-500 sm:inline dark:text-sand-400">{{ __('ui.budget.of_count', ['part' => number_format($party['against_others'], 0, ',', '.'), 'total' => number_format($party['others_voted'], 0, ',', '.')]) }}</span>
+                                        </div>
+                                        <x-progress-bar :share="$party['against_rate'] / 100" color="parliament" class="mt-1.5" />
+                                    @else
+                                        <span class="text-sand-400 dark:text-sand-600">—</span>
+                                    @endif
                                 </td>
                             </tr>
                         @endforeach
                     </tbody>
                 </table>
             </div>
-        </section>
+        </x-budget-section>
+
+        {{-- Topics --}}
+        @if ($topics['proposals']->isNotEmpty())
+            <x-budget-section id="topics-title" :title="__('ui.budget.topics.title')" :intro="__('ui.budget.topics.intro')" icon="chat" x-data="{ tab: 'parties' }">
+                <div class="space-y-4">
+                <div role="tablist" aria-label="{{ __('ui.budget.topics.title') }}" class="inline-flex flex-wrap gap-1 rounded-xl bg-sand-100 p-1 dark:bg-sand-950">
+                    @foreach (['parties', 'proposals', 'divided'] as $rankBy)
+                        <button type="button" role="tab" id="topics-tab-{{ $rankBy }}" aria-controls="topics-panel-{{ $rankBy }}"
+                                @click="tab = '{{ $rankBy }}'"
+                                :aria-selected="tab === '{{ $rankBy }}'"
+                                :class="tab === '{{ $rankBy }}' ? 'bg-white text-republic-700 shadow-sm dark:bg-sand-800 dark:text-republic-400' : 'text-sand-600 hover:text-republic-700 dark:text-sand-400 dark:hover:text-republic-400'"
+                                class="rounded-lg px-4 py-2 text-sm font-semibold transition-colors">
+                            {{ __('ui.budget.topics.tab_' . $rankBy) }}
+                        </button>
+                    @endforeach
+                </div>
+                @foreach (['parties', 'proposals', 'divided'] as $rankBy)
+                    <div role="tabpanel" id="topics-panel-{{ $rankBy }}" aria-labelledby="topics-tab-{{ $rankBy }}" x-show="tab === '{{ $rankBy }}'" @if (! $loop->first) x-cloak @endif class="space-y-3">
+                        <p class="text-sm text-sand-600 dark:text-sand-400">{{ __('ui.budget.topics.hint_' . $rankBy) }}</p>
+                        @if ($topics[$rankBy]->isEmpty())
+                            <p class="rounded-xl border border-sand-200 bg-white p-4 text-sm text-sand-500 dark:border-sand-800 dark:bg-sand-900 dark:text-sand-400">{{ __('ui.budget.topics.no_divided') }}</p>
+                        @else
+                            <x-budget-topic-list :budget="$budget" :topics="$topics[$rankBy]" :rank-by="$rankBy" />
+                        @endif
+                        @if ($rankBy === 'divided')
+                            <p class="text-xs text-sand-500 dark:text-sand-400">{{ __('ui.budget.topics.division_help') }}</p>
+                        @endif
+                    </div>
+                @endforeach
+                </div>
+            </x-budget-section>
+        @endif
 
         {{-- Themes --}}
-        <section class="space-y-3" aria-labelledby="themes-title">
-            <div>
-                <h2 id="themes-title" class="font-serif text-xl font-bold text-sand-900 dark:text-sand-100">{{ __('ui.budget.themes_title') }}</h2>
-                <p class="mt-1 text-sm text-sand-500 dark:text-sand-400">{{ __('ui.budget.themes_intro') }}</p>
-            </div>
-            <ul class="flex flex-wrap gap-2">
-                @foreach ($themes as $theme)
-                    <li>
-                        <a href="{{ $legislatureContext->route('budgets.proposals.index', ['year' => $budget->year, 'tema' => $theme->slug]) }}"
-                           class="group inline-flex items-center gap-2 rounded-xl border border-sand-200 bg-white px-3 py-2 text-sm text-sand-700 transition-colors hover:border-republic-300 hover:text-republic-700 dark:border-sand-800 dark:bg-sand-900 dark:text-sand-300 dark:hover:border-republic-700 dark:hover:text-republic-400">
-                            <x-budget-theme-icon :theme="$theme->name" class="size-4 text-republic-600 dark:text-republic-400" />
-                            {{ $theme->name }}
-                            <span class="rounded-full bg-sand-100 px-1.5 text-xs tabular-nums text-sand-600 dark:bg-sand-800 dark:text-sand-400">{{ $theme->proposals_count }}</span>
-                        </a>
-                    </li>
-                @endforeach
-            </ul>
-        </section>
+        @if ($themes->isNotEmpty())
+            <x-budget-section id="themes-title" :title="__('ui.budget.themes_title')" :intro="__('ui.budget.themes_intro')" icon="tag" accent="blue">
+                <ul class="grid grid-cols-1 gap-x-8 gap-y-1 md:grid-cols-2">
+                    @foreach ($themes as $theme)
+                        <li>
+                            <a href="{{ $legislatureContext->route('budgets.proposals.index', ['year' => $budget->year, 'tema' => $theme->slug]) }}"
+                               class="group flex items-center gap-3 rounded-xl px-2 py-2 transition-colors hover:bg-sand-50 dark:hover:bg-sand-950">
+                                <span class="inline-flex shrink-0 rounded-lg bg-sky-50 p-1.5 text-sky-700 dark:bg-sky-950 dark:text-sky-400">
+                                    <x-budget-theme-icon :theme="$theme->name" class="size-4" />
+                                </span>
+                                <span class="min-w-0 flex-1">
+                                    <span class="flex items-baseline justify-between gap-3">
+                                        <span class="truncate text-sm font-medium text-sand-800 group-hover:text-sky-700 dark:text-sand-200 dark:group-hover:text-sky-400">{{ $theme->name }}</span>
+                                        <span class="shrink-0 text-sm font-semibold tabular-nums text-sand-900 dark:text-sand-100">{{ number_format($theme->proposals_count, 0, ',', '.') }}</span>
+                                    </span>
+                                    <x-progress-bar :share="$theme->proposals_count / $themes->max('proposals_count')" color="blue" class="mt-1.5" />
+                                </span>
+                            </a>
+                        </li>
+                    @endforeach
+                </ul>
+            </x-budget-section>
+        @endif
 
         @if ($budget->last_imported_at)
             <p class="text-xs text-sand-500 dark:text-sand-400">{{ __('ui.budget.last_imported', ['date' => $budget->last_imported_at->format('d/m/Y')]) }}</p>
