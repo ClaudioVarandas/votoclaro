@@ -3,6 +3,7 @@
 namespace Tests\Concerns;
 
 use Illuminate\Foundation\Testing\DatabaseTruncation;
+use Illuminate\Foundation\Testing\RefreshDatabaseState;
 
 /**
  * Runs a test class on the mysql_testing connection instead of SQLite, for behaviour only MySQL
@@ -15,6 +16,8 @@ trait RefreshesMysqlTestDatabase
 {
     use DatabaseTruncation;
 
+    private static bool $mysqlTestDatabaseMigrated = false;
+
     protected function beforeTruncatingDatabase(): void
     {
         if (! config('database.connections.mysql_testing.database')) {
@@ -22,5 +25,12 @@ trait RefreshesMysqlTestDatabase
         }
 
         config(['database.default' => 'mysql_testing']);
+
+        // The SQLite tests that ran before mark the database as migrated for the whole process;
+        // MySQL still has to be migrated once.
+        if (! self::$mysqlTestDatabaseMigrated) {
+            RefreshDatabaseState::$migrated = false;
+            self::$mysqlTestDatabaseMigrated = true;
+        }
     }
 }

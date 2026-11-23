@@ -19,4 +19,22 @@ enum BudgetVotePosition: string
             default => null,
         };
     }
+
+    public function label(): string
+    {
+        return __('ui.budget.position.'.$this->value);
+    }
+
+    /**
+     * Shown in the vote grid next to the colour, so the grid reads without it too.
+     */
+    public function symbol(): string
+    {
+        return match ($this) {
+            self::Favor => '✓',
+            self::Contra => '✗',
+            self::Abstencao => '—',
+            self::Ausente => '·',
+        };
+    }
 }

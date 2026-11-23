@@ -36,7 +36,7 @@
 
                 {{-- Desktop nav --}}
                 <div class="hidden items-center gap-1 sm:flex">
-                    @foreach (['dashboard' => 'dashboard', 'initiatives' => 'initiatives.index', 'parties' => 'parties.index', 'about' => 'about'] as $key => $routeName)
+                    @foreach (['dashboard' => 'dashboard', 'initiatives' => 'initiatives.index', 'budgets' => 'budgets.index', 'parties' => 'parties.index', 'about' => 'about'] as $key => $routeName)
                         <a href="{{ $routeName === 'about' ? route($routeName) : $legislatureContext->route($routeName) }}"
                            @php $isActive = str_contains($routeName, '.') ? request()->routeIs(str($routeName)->before('.') . '.*', 'legislatures.' . str($routeName)->before('.') . '.*') : request()->routeIs($routeName, 'legislatures.' . $routeName); @endphp
                            class="rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-sand-100 hover:text-republic-700 dark:hover:bg-sand-900 dark:hover:text-republic-400 {{ $isActive ? 'bg-sand-100 text-republic-700 dark:bg-sand-900 dark:text-republic-400' : 'text-sand-600 dark:text-sand-400' }}">
@@ -76,7 +76,7 @@
 
             {{-- Mobile menu --}}
             <div x-show="open" x-cloak x-transition class="border-t border-sand-200 pb-4 sm:hidden dark:border-sand-800">
-                @foreach (['dashboard' => 'dashboard', 'initiatives' => 'initiatives.index', 'parties' => 'parties.index', 'about' => 'about'] as $key => $routeName)
+                @foreach (['dashboard' => 'dashboard', 'initiatives' => 'initiatives.index', 'budgets' => 'budgets.index', 'parties' => 'parties.index', 'about' => 'about'] as $key => $routeName)
                     <a href="{{ $routeName === 'about' ? route($routeName) : $legislatureContext->route($routeName) }}"
                        @php $isActive = str_contains($routeName, '.') ? request()->routeIs(str($routeName)->before('.') . '.*', 'legislatures.' . str($routeName)->before('.') . '.*') : request()->routeIs($routeName, 'legislatures.' . $routeName); @endphp
                        class="block rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-sand-100 dark:hover:bg-sand-900 {{ $isActive ? 'text-republic-700 dark:text-republic-400' : 'text-sand-600 dark:text-sand-400' }}">
@@ -104,6 +104,7 @@
                     <ul class="mt-4 space-y-2">
                         <li><a href="{{ $legislatureContext->route('dashboard') }}" class="text-sm text-sand-600 transition-colors hover:text-republic-700 dark:text-sand-400 dark:hover:text-republic-400">{{ __('ui.nav.dashboard') }}</a></li>
                         <li><a href="{{ $legislatureContext->route('initiatives.index') }}" class="text-sm text-sand-600 transition-colors hover:text-republic-700 dark:text-sand-400 dark:hover:text-republic-400">{{ __('ui.nav.initiatives') }}</a></li>
+                        <li><a href="{{ $legislatureContext->route('budgets.index') }}" class="text-sm text-sand-600 transition-colors hover:text-republic-700 dark:text-sand-400 dark:hover:text-republic-400">{{ __('ui.nav.budgets') }}</a></li>
                         <li><a href="{{ $legislatureContext->route('parties.index') }}" class="text-sm text-sand-600 transition-colors hover:text-republic-700 dark:text-sand-400 dark:hover:text-republic-400">{{ __('ui.nav.parties') }}</a></li>
                         <li><a href="{{ route('about') }}" class="text-sm text-sand-600 transition-colors hover:text-republic-700 dark:text-sand-400 dark:hover:text-republic-400">{{ __('ui.nav.about') }}</a></li>
                     </ul>

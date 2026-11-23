@@ -17,9 +17,11 @@ return new class extends Migration
             $table->string('result')->nullable();
             $table->string('result_label');
             $table->text('subject')->nullable();
+            $table->boolean('is_final')->default(false);
             $table->timestamps();
 
             $table->unique(['budget_proposal_id', 'sequence']);
+            $table->index(['budget_proposal_id', 'is_final']);
             $table->foreign('budget_proposal_id')->references('id')->on('budget_proposals')->cascadeOnDelete();
         });
     }

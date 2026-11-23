@@ -41,6 +41,23 @@ class BudgetProposal extends Model
         ];
     }
 
+    /**
+     * What the amendment is about. The Parliament titles most as "Artigo 119.º-A (Subject)";
+     * the subject is what a reader looks for, the article is where it goes.
+     */
+    public function subject(): string
+    {
+        return preg_match('/\((.+)\)\s*$/u', $this->title, $matches) ? $matches[1] : $this->title;
+    }
+
+    /**
+     * Where in the budget it goes, when the title says so apart from the subject.
+     */
+    public function location(): ?string
+    {
+        return preg_match('/^(.+?)\s*\((.+)\)\s*$/u', $this->title, $matches) ? $matches[1] : null;
+    }
+
     public function budget(): BelongsTo
     {
         return $this->belongsTo(Budget::class);
@@ -59,6 +76,15 @@ class BudgetProposal extends Model
     public function votes(): HasMany
     {
         return $this->hasMany(BudgetVote::class)->orderBy('sequence');
+    }
+
+    /**
+     * The votes that decided it: the plenary's when it was called up there, the committee's
+     * otherwise. A proposal voted in parts has one per part.
+     */
+    public function finalVotes(): HasMany
+    {
+        return $this->hasMany(BudgetVote::class)->where('is_final', true)->orderBy('sequence');
     }
 
     /**

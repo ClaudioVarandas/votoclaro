@@ -33,4 +33,39 @@ enum BudgetProposalStatus: string
             default => self::Pending,
         };
     }
+
+    /**
+     * The statuses to filter by, in the order a reader looks for them, among those present.
+     *
+     * @param  list<string>  $presentValues
+     * @return list<self>
+     */
+    public static function listable(array $presentValues): array
+    {
+        return array_values(array_filter(
+            self::cases(),
+            fn (self $status): bool => in_array($status->value, $presentValues, true),
+        ));
+    }
+
+    public function isApproved(): bool
+    {
+        return $this === self::Approved || $this === self::PartiallyApproved;
+    }
+
+    public function label(): string
+    {
+        return __('ui.budget.status.'.$this->value);
+    }
+
+    public function color(): string
+    {
+        return match ($this) {
+            self::Approved => 'bg-republic-100 text-republic-800 dark:bg-republic-950 dark:text-republic-300',
+            self::PartiallyApproved => 'bg-republic-50 text-republic-700 dark:bg-republic-950 dark:text-republic-400',
+            self::Rejected => 'bg-parliament-100 text-parliament-800 dark:bg-parliament-950 dark:text-parliament-300',
+            self::Pending => 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300',
+            self::Withdrawn, self::Replaced, self::NotAdmitted, self::Prejudiced => 'bg-sand-100 text-sand-600 dark:bg-sand-900 dark:text-sand-400',
+        };
+    }
 }

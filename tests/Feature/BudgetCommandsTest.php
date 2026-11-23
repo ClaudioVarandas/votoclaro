@@ -149,6 +149,8 @@ class BudgetCommandsTest extends TestCase
             $proposal->votes->pluck('stage')->all(),
         );
 
+        $this->assertSame([BudgetVoteStage::Plenary], $proposal->finalVotes->pluck('stage')->all());
+
         $plenary = $proposal->votes->firstWhere('stage', BudgetVoteStage::Plenary);
         $this->assertSame('2026-11-19', $plenary->date->toDateString());
         $this->assertSame(BudgetVotePosition::Contra, $plenary->positions->firstWhere('party', 'JPP')->position);
@@ -165,6 +167,15 @@ class BudgetCommandsTest extends TestCase
         $this->assertSame('Pedro Coelho', $deputy->deputy);
         $this->assertSame('PSD', $deputy->party);
         $this->assertSame(BudgetVotePosition::Favor, $deputy->position);
+    }
+
+    public function test_the_committee_votes_decide_a_proposal_not_called_up(): void
+    {
+        $this->importFixture();
+
+        $proposal = BudgetProposal::query()->where('number', '1907C')->sole();
+
+        $this->assertSame([BudgetVoteStage::Committee], $proposal->finalVotes->pluck('stage')->all());
     }
 
     public function test_import_skips_a_vote_recorded_without_positions(): void

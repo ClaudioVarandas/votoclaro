@@ -130,6 +130,21 @@ class BudgetProposalSyncService
         foreach (array_values(array_filter(ParliamentJson::list($item['Votacoes']['Votacao'] ?? null), 'is_array')) as $sequence => $vote) {
             $this->syncVote($proposal, $sequence + 1, $vote);
         }
+
+        $this->markFinalVotes($proposal);
+    }
+
+    /**
+     * A proposal called up to the plenary is decided there, whatever the committee voted.
+     */
+    private function markFinalVotes(BudgetProposal $proposal): void
+    {
+        $votes = $proposal->votes();
+        $finalStage = (clone $votes)->where('stage', BudgetVoteStage::Plenary)->exists()
+            ? BudgetVoteStage::Plenary
+            : BudgetVoteStage::Committee;
+
+        (clone $votes)->where('stage', $finalStage)->update(['is_final' => true]);
     }
 
     /**

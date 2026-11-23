@@ -22,6 +22,7 @@ class BudgetVote extends Model
         'result',
         'result_label',
         'subject',
+        'is_final',
     ];
 
     protected function casts(): array
@@ -31,6 +32,7 @@ class BudgetVote extends Model
             'stage' => BudgetVoteStage::class,
             'date' => 'date',
             'result' => BudgetProposalStatus::class,
+            'is_final' => 'boolean',
         ];
     }
 

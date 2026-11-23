@@ -11,7 +11,23 @@ use Illuminate\View\Component;
 class LegislatureSwitcher extends Component
 {
     /** @var list<string> */
-    private const SCOPED_PAGES = ['dashboard', 'initiatives.index', 'parties.index', 'parties.show'];
+    private const SCOPED_PAGES = [
+        'dashboard',
+        'initiatives.index',
+        'budgets.index',
+        'budgets.show',
+        'budgets.proposals.index',
+        'budgets.proposals.show',
+        'parties.index',
+        'parties.show',
+    ];
+
+    /**
+     * A budget belongs to one legislature, so its pages lead to the budget list of the others.
+     *
+     * @var list<string>
+     */
+    private const BUDGET_PAGES = ['budgets.show', 'budgets.proposals.index', 'budgets.proposals.show'];
 
     public function __construct(private LegislatureContext $legislatureContext) {}
 
@@ -67,6 +83,12 @@ class LegislatureSwitcher extends Component
 
     private function urlFor(Legislature $legislature, string $page): string
     {
+        if (in_array($page, self::BUDGET_PAGES, true)) {
+            return $legislature->is($this->active())
+                ? request()->url()
+                : $this->legislatureContext->route('budgets.index', [], $legislature);
+        }
+
         if ($page !== 'parties.show') {
             return $this->legislatureContext->route($page, [], $legislature);
         }

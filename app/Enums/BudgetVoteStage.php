@@ -15,4 +15,9 @@ enum BudgetVoteStage: string
     {
         return str_contains(mb_strtolower((string) $label), 'plenário') ? self::Plenary : self::Committee;
     }
+
+    public function label(): string
+    {
+        return __('ui.budget.stage.'.$this->value);
+    }
 }
