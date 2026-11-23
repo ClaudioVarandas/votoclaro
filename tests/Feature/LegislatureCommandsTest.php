@@ -175,6 +175,23 @@ class LegislatureCommandsTest extends TestCase
         $this->assertSame(2, app(ParliamentInitiativeSyncService::class)->sync($legislature));
     }
 
+    public function test_initiatives_import_keeps_the_phase_of_each_vote(): void
+    {
+        Legislature::factory()->xvii()->create(['initiatives_url' => self::INITIATIVES_URL]);
+        $initiative = $this->initiative('900001');
+        $initiative['IniEventos'][] = [
+            'DataFase' => '2029-06-01',
+            'CodigoFase' => '240',
+            'Fase' => 'Votação final global',
+            'Votacao' => [['id' => '777', 'data' => '2029-06-01', 'resultado' => 'Aprovado', 'unanime' => 'unanime', 'detalhe' => null]],
+        ];
+        Http::fake([self::INITIATIVES_URL => Http::response([$initiative])]);
+
+        $this->artisan('ar:initiatives:import')->assertSuccessful();
+
+        $this->assertSame('Votação final global', Initiative::query()->findOrFail('900001')->finalGlobalVote()?->phase);
+    }
+
     public function test_initiatives_import_removes_the_download_when_it_fails(): void
     {
         Legislature::factory()->xvii()->create(['initiatives_url' => self::INITIATIVES_URL]);

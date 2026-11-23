@@ -164,6 +164,7 @@ class ParliamentInitiativeSyncService
                     'id' => $voteData['id'],
                     'date' => $voteData['data'],
                     'result' => $voteData['resultado'],
+                    'phase' => isset($event['Fase']) ? trim((string) $event['Fase']) : null,
                     'unanimous' => $voteData['unanime'] === 'unanime',
                     'is_latest' => false,
                 ]);

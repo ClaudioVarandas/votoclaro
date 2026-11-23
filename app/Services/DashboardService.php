@@ -13,6 +13,10 @@ class DashboardService
 {
     private const CACHE_TTL = 3600;
 
+    public const GOVERNMENT = 'government';
+
+    public const PARLIAMENTARY_GROUP = 'parliamentary_group';
+
     /**
      * @return array{totalInitiatives: int, approved: int, rejected: int, inProgress: int, lapsed: int, withdrawn: int, approvalRate: float}
      */
@@ -40,17 +44,39 @@ class DashboardService
         });
     }
 
-    public function getGovernmentStats(Legislature $legislature): object
+    /**
+     * Who proposes the initiatives, the Government or the parliamentary groups, and how far each
+     * gets: how many, how many were approved, and the days an approved one took on average.
+     *
+     * @return array<string, array{total: int, approved: int, approval_rate: float, avg_days: ?int}> by author category
+     */
+    public function getAuthorshipComparison(Legislature $legislature): array
     {
-        return Cache::remember("dashboard.{$legislature->id}.government_stats", self::CACHE_TTL, function () use ($legislature) {
-            return Initiative::query()
+        return Cache::remember("dashboard.{$legislature->id}.authorship", self::CACHE_TTL, function () use ($legislature): array {
+            $rows = Initiative::query()
                 ->forLegislature($legislature)
-                ->where('author_category', 'government')
-                ->selectRaw('COUNT(*) as total')
+                ->whereIn('author_category', [self::GOVERNMENT, self::PARLIAMENTARY_GROUP])
+                ->selectRaw('author_category, COUNT(*) as total')
                 ->selectRaw('SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as approved', [InitiativeStatus::Approved->value])
-                ->selectRaw('SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as rejected', [InitiativeStatus::Rejected->value])
                 ->selectRaw('AVG(days_to_approval) as avg_days')
-                ->first();
+                ->groupBy('author_category')
+                ->get()
+                ->keyBy('author_category');
+
+            return collect([self::GOVERNMENT, self::PARLIAMENTARY_GROUP])
+                ->mapWithKeys(function (string $category) use ($rows): array {
+                    $total = (int) ($rows[$category]->total ?? 0);
+                    $approved = (int) ($rows[$category]->approved ?? 0);
+                    $avgDays = $rows[$category]->avg_days ?? null;
+
+                    return [$category => [
+                        'total' => $total,
+                        'approved' => $approved,
+                        'approval_rate' => $total > 0 ? round($approved / $total * 100, 1) : 0.0,
+                        'avg_days' => $avgDays !== null ? (int) round((float) $avgDays) : null,
+                    ]];
+                })
+                ->all();
         });
     }
 
@@ -76,69 +102,53 @@ class DashboardService
         });
     }
 
-    public function getMostActiveParties(Legislature $legislature, int $limit = 3): Collection
+    /**
+     * The initiatives each parliamentary group proposed and how many were approved.
+     *
+     * @return array<string, array{total: int, approved: int, approval_rate: float}> by party acronym
+     */
+    public function getPartyInitiativeStats(Legislature $legislature): array
     {
-        return Cache::remember("dashboard.{$legislature->id}.most_active_parties.{$limit}", self::CACHE_TTL, function () use ($legislature, $limit) {
-            return Initiative::query()
-                ->forLegislature($legislature)
-                ->where('author_category', 'parliamentary_group')
-                ->whereNotNull('author_party')
-                ->selectRaw('author_party, COUNT(*) as total')
-                ->groupBy('author_party')
-                ->orderByDesc('total')
-                ->limit($limit)
-                ->get();
-        });
+        return Cache::remember("dashboard.{$legislature->id}.party_initiatives", self::CACHE_TTL, fn (): array => Initiative::query()
+            ->forLegislature($legislature)
+            ->where('author_category', self::PARLIAMENTARY_GROUP)
+            ->whereNotNull('author_party')
+            ->selectRaw('author_party, COUNT(*) as total')
+            ->selectRaw('SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as approved', [InitiativeStatus::Approved->value])
+            ->groupBy('author_party')
+            ->get()
+            ->mapWithKeys(fn ($row): array => [$row->author_party => [
+                'total' => (int) $row->total,
+                'approved' => (int) $row->approved,
+                'approval_rate' => round($row->approved / $row->total * 100, 1),
+            ]])
+            ->all());
     }
 
-    public function getLeastActiveParties(Legislature $legislature, int $limit = 3): Collection
+    /**
+     * The parties of the legislature for the home page: how many initiatives each proposed, how
+     * many passed, and how it voted, the most active first.
+     *
+     * @param  array<string, array{total_votes: int, favor: int, contra: int, abstencao: int, favor_pct: float}>  $voteStats  by acronym
+     * @return list<array{acronym: string, initiatives: int, approved: int, approval_rate: float, votes: array{favor: int, contra: int, abstencao: int}, total_votes: int, favor_pct: float}>
+     */
+    public function getPartyTable(Legislature $legislature, array $voteStats): array
     {
-        return Cache::remember("dashboard.{$legislature->id}.least_active_parties.{$limit}", self::CACHE_TTL, function () use ($legislature, $limit) {
-            return Initiative::query()
-                ->forLegislature($legislature)
-                ->where('author_category', 'parliamentary_group')
-                ->whereNotNull('author_party')
-                ->selectRaw('author_party, COUNT(*) as total')
-                ->groupBy('author_party')
-                ->orderBy('total')
-                ->limit($limit)
-                ->get();
-        });
-    }
+        $initiatives = $this->getPartyInitiativeStats($legislature);
 
-    public function getHighestApprovalParties(Legislature $legislature, int $minThreshold = 10, int $limit = 3): Collection
-    {
-        return Cache::remember("dashboard.{$legislature->id}.highest_approval_parties.{$minThreshold}.{$limit}", self::CACHE_TTL, function () use ($legislature, $minThreshold, $limit) {
-            return Initiative::query()
-                ->forLegislature($legislature)
-                ->where('author_category', 'parliamentary_group')
-                ->whereNotNull('author_party')
-                ->selectRaw('author_party, COUNT(*) as total')
-                ->selectRaw('SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as approved_count', [InitiativeStatus::Approved->value])
-                ->groupBy('author_party')
-                ->havingRaw('COUNT(*) >= ?', [$minThreshold])
-                ->get()
-                ->map(fn ($row) => (object) [
-                    'author_party' => $row->author_party,
-                    'total' => $row->total,
-                    'approved_count' => $row->approved_count,
-                    'approval_rate' => round(($row->approved_count / $row->total) * 100, 1),
-                ])
-                ->sortByDesc('approval_rate')
-                ->take($limit)
-                ->values();
-        });
-    }
-
-    public function getLegislationBalance(Legislature $legislature): object
-    {
-        return Cache::remember("dashboard.{$legislature->id}.legislation_balance", self::CACHE_TTL, function () use ($legislature) {
-            return Initiative::query()
-                ->forLegislature($legislature)
-                ->selectRaw("SUM(CASE WHEN author_category = 'government' THEN 1 ELSE 0 END) as gov")
-                ->selectRaw("SUM(CASE WHEN author_category = 'parliamentary_group' THEN 1 ELSE 0 END) as parl")
-                ->first();
-        });
+        return collect($voteStats)
+            ->map(fn (array $votes, string $acronym): array => [
+                'acronym' => $acronym,
+                'initiatives' => $initiatives[$acronym]['total'] ?? 0,
+                'approved' => $initiatives[$acronym]['approved'] ?? 0,
+                'approval_rate' => $initiatives[$acronym]['approval_rate'] ?? 0.0,
+                'votes' => ['favor' => $votes['favor'], 'contra' => $votes['contra'], 'abstencao' => $votes['abstencao']],
+                'total_votes' => $votes['total_votes'],
+                'favor_pct' => (float) $votes['favor_pct'],
+            ])
+            ->sortBy([['initiatives', 'desc'], ['acronym', 'asc']])
+            ->values()
+            ->all();
     }
 
     public function getLatestInitiatives(Legislature $legislature, int $limit = 10): Collection

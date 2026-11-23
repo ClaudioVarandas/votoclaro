@@ -7,10 +7,11 @@ use Illuminate\Contracts\View\View;
 use Illuminate\View\Component;
 
 /**
- * A thin bar split between for, against and abstention, in steps of 5% that always add up to the
- * full width, for a party's votes read at a glance.
+ * A thin bar split into shares, in steps of 5% that always add up to the full width: a party's
+ * votes (for, against, abstention) or the initiatives by outcome. The shares come in the order
+ * of the colors below.
  */
-class PositionShareBar extends Component
+class ShareBar extends Component
 {
     private const STEPS = 20;
 
@@ -42,12 +43,23 @@ class PositionShareBar extends Component
         'favor' => 'bg-republic-500 dark:bg-republic-400',
         'contra' => 'bg-parliament-500 dark:bg-parliament-400',
         'abstencao' => 'bg-amber-400 dark:bg-amber-400',
+        'approved' => 'bg-republic-500 dark:bg-republic-400',
+        'rejected' => 'bg-parliament-500 dark:bg-parliament-400',
+        'in_progress' => 'bg-amber-400 dark:bg-amber-400',
+        'lapsed' => 'bg-sand-400 dark:bg-sand-500',
+        'withdrawn' => 'bg-sand-300 dark:bg-sand-600',
     ];
 
     /**
-     * @param  array{favor?: int, contra?: int, abstencao?: int}  $counts
+     * @param  array<string, int>  $counts  by a key of the colors
+     * @param  bool  $thick  for a bar that stands on its own rather than in a table row
      */
-    public function __construct(public array $counts) {}
+    public function __construct(public array $counts, public bool $thick = false) {}
+
+    public function heightClass(): string
+    {
+        return $this->thick ? 'h-2.5' : 'h-1.5';
+    }
 
     /**
      * The segments to draw, each with its width and color; the steps are shared out by the
@@ -57,7 +69,14 @@ class PositionShareBar extends Component
      */
     public function segments(): array
     {
-        $counts = array_map(fn (string $position): int => max(0, (int) ($this->counts[$position] ?? 0)), array_combine(array_keys(self::COLORS), array_keys(self::COLORS)));
+        $counts = [];
+
+        foreach (array_keys(self::COLORS) as $key) {
+            if (isset($this->counts[$key])) {
+                $counts[$key] = max(0, (int) $this->counts[$key]);
+            }
+        }
+
         $total = array_sum($counts);
 
         if ($total === 0) {
@@ -92,6 +111,6 @@ class PositionShareBar extends Component
 
     public function render(): View|Closure|string
     {
-        return view('components.position-share-bar');
+        return view('components.share-bar');
     }
 }

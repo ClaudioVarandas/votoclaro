@@ -115,8 +115,8 @@ class LapsedAndWithdrawnInitiativesTest extends TestCase
             ->assertViewHas('lapsed', 3)
             ->assertViewHas('withdrawn', 1)
             ->assertViewHas('totalInitiatives', 5)
-            ->assertSee(InitiativeStatus::Lapsed->label())
-            ->assertSee(InitiativeStatus::Withdrawn->label());
+            ->assertSee(__('ui.dashboard.outcome.lapsed'))
+            ->assertSee(__('ui.dashboard.outcome.withdrawn'));
     }
 
     public function test_dashboard_hides_lapsed_and_withdrawn_when_absent(): void
@@ -124,7 +124,7 @@ class LapsedAndWithdrawnInitiativesTest extends TestCase
         Initiative::factory()->approved()->create();
 
         $this->get(route('dashboard'))
-            ->assertDontSee(InitiativeStatus::Lapsed->label())
-            ->assertDontSee(InitiativeStatus::Withdrawn->label());
+            ->assertDontSee(__('ui.dashboard.outcome.lapsed'))
+            ->assertDontSee(__('ui.dashboard.outcome.withdrawn'));
     }
 }

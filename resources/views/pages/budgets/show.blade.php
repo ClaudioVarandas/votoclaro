@@ -39,7 +39,7 @@
         </section>
 
         {{-- Parties --}}
-        <x-budget-section id="parties-title" :title="__('ui.budget.parties_title')" :intro="__('ui.budget.parties_intro')" icon="building-library">
+        <x-section-panel id="parties-title" :title="__('ui.budget.parties_title')" :intro="__('ui.budget.parties_intro')" icon="building-library">
             <div class="-mx-5 overflow-x-auto sm:-mx-6">
                 <table class="w-full text-sm">
                     <thead>
@@ -82,7 +82,7 @@
                                             <div class="flex items-baseline justify-between gap-2">
                                                 <span class="font-semibold tabular-nums text-indigo-700 dark:text-indigo-400">{{ __('ui.budget.articles.favor_rate', ['percent' => number_format($party['articles_favor_rate'], 0, ',', '.')]) }}</span>
                                             </div>
-                                            <x-position-share-bar :counts="$party['articles']" class="mt-1.5" title="{{ __('ui.budget.articles.share_title', ['favor' => $party['articles']['favor'], 'contra' => $party['articles']['contra'], 'abstencao' => $party['articles']['abstencao']]) }}" />
+                                            <x-share-bar :counts="$party['articles']" class="mt-1.5" title="{{ __('ui.budget.articles.share_title', ['favor' => $party['articles']['favor'], 'contra' => $party['articles']['contra'], 'abstencao' => $party['articles']['abstencao']]) }}" />
                                         @else
                                             <span class="text-sand-400 dark:text-sand-600">—</span>
                                         @endif
@@ -104,11 +104,11 @@
                     </tbody>
                 </table>
             </div>
-        </x-budget-section>
+        </x-section-panel>
 
         {{-- The Government's bill --}}
         @if ($articles['total'] > 0)
-            <x-budget-section id="articles-title" :title="__('ui.budget.articles.section_title')" :intro="__('ui.budget.articles.section_intro')" icon="building-library" accent="indigo">
+            <x-section-panel id="articles-title" :title="__('ui.budget.articles.section_title')" :intro="__('ui.budget.articles.section_intro')" icon="building-library" accent="indigo">
                 <div class="space-y-6">
                     <dl class="grid grid-cols-2 gap-3 lg:grid-cols-4">
                         @foreach (['total' => 'proposals', 'approved' => 'approved', 'pending' => 'pending'] as $key => $outcome)
@@ -141,12 +141,12 @@
 
                     <a href="{{ $legislatureContext->route('budgets.articles.index', ['year' => $budget->year]) }}" class="inline-flex items-center gap-1 text-sm font-semibold text-indigo-700 hover:underline dark:text-indigo-400">{{ __('ui.budget.articles.see_all') }} <span aria-hidden="true">→</span></a>
                 </div>
-            </x-budget-section>
+            </x-section-panel>
         @endif
 
         {{-- Topics --}}
         @if ($topics['proposals']->isNotEmpty())
-            <x-budget-section id="topics-title" :title="__('ui.budget.topics.title')" :intro="__('ui.budget.topics.intro')" icon="chat" x-data="{ tab: 'parties' }">
+            <x-section-panel id="topics-title" :title="__('ui.budget.topics.title')" :intro="__('ui.budget.topics.intro')" icon="chat" x-data="{ tab: 'parties' }">
                 <div class="space-y-4">
                 <div role="tablist" aria-label="{{ __('ui.budget.topics.title') }}" class="inline-flex flex-wrap gap-1 rounded-xl bg-sand-100 p-1 dark:bg-sand-950">
                     @foreach (['parties', 'proposals', 'divided'] as $rankBy)
@@ -173,12 +173,12 @@
                     </div>
                 @endforeach
                 </div>
-            </x-budget-section>
+            </x-section-panel>
         @endif
 
         {{-- Themes --}}
         @if ($themes->isNotEmpty())
-            <x-budget-section id="themes-title" :title="__('ui.budget.themes_title')" :intro="__('ui.budget.themes_intro')" icon="tag" accent="blue">
+            <x-section-panel id="themes-title" :title="__('ui.budget.themes_title')" :intro="__('ui.budget.themes_intro')" icon="tag" accent="blue">
                 <ul class="grid grid-cols-1 gap-x-8 gap-y-1 md:grid-cols-2">
                     @foreach ($themes as $theme)
                         <li>
@@ -198,7 +198,7 @@
                         </li>
                     @endforeach
                 </ul>
-            </x-budget-section>
+            </x-section-panel>
         @endif
 
         @if ($budget->last_imported_at)

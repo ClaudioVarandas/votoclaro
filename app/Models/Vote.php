@@ -10,6 +10,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Vote extends Model
 {
+    /** The vote that passes or rejects a bill as a whole, at the end of the legislative process. */
+    public const PHASE_FINAL_GLOBAL = 'Votação final global';
+
     use HasFactory;
 
     public $incrementing = false;
@@ -21,6 +24,7 @@ class Vote extends Model
         'initiative_id',
         'date',
         'result',
+        'phase',
         'unanimous',
         'is_latest',
     ];

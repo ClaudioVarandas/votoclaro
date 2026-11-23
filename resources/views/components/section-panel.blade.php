@@ -10,12 +10,15 @@
         ])>
             <x-budget-theme-icon :icon="$icon" class="size-5" />
         </span>
-        <div class="min-w-0">
+        <div class="min-w-0 flex-1">
             <h2 id="{{ $id }}" class="font-serif text-2xl font-bold tracking-tight text-sand-900 dark:text-sand-100">{{ $title }}</h2>
             @if ($intro)
                 <p class="mt-1 text-sm text-sand-500 dark:text-sand-400">{{ $intro }}</p>
             @endif
         </div>
+        @isset($action)
+            <div class="shrink-0 self-center">{{ $action }}</div>
+        @endisset
     </div>
     <div class="mt-5">
         {{ $slot }}

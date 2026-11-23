@@ -48,7 +48,15 @@ class ProgressBar extends Component
     /**
      * @param  float  $share  from 0 to 1; anything outside is clamped
      */
-    public function __construct(public float $share, public string $color = 'republic') {}
+    /**
+     * @param  bool  $thick  for a bar that stands on its own rather than in a table row
+     */
+    public function __construct(public float $share, public string $color = 'republic', public bool $thick = false) {}
+
+    public function trackClass(): string
+    {
+        return ($this->thick ? 'h-2' : 'h-1.5').' bg-sand-100 dark:bg-sand-800';
+    }
 
     public function widthClass(): string
     {

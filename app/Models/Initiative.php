@@ -40,6 +40,14 @@ class Initiative extends Model
         return $this->belongsTo(Legislature::class);
     }
 
+    /**
+     * The vote on the bill as a whole, once it took place.
+     */
+    public function finalGlobalVote(): ?Vote
+    {
+        return $this->votes()->where('phase', Vote::PHASE_FINAL_GLOBAL)->orderByDesc('date')->first();
+    }
+
     public function votes(): HasMany
     {
         return $this->hasMany(Vote::class);

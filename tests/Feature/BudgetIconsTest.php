@@ -5,8 +5,8 @@ namespace Tests\Feature;
 use App\View\Components\BudgetOutcomeIcon;
 use App\View\Components\BudgetOutcomeStat;
 use App\View\Components\BudgetThemeIcon;
-use App\View\Components\PositionShareBar;
 use App\View\Components\ProgressBar;
+use App\View\Components\ShareBar;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
@@ -103,7 +103,7 @@ class BudgetIconsTest extends TestCase
 
     public function test_the_position_bar_fills_exactly_the_full_width(): void
     {
-        $segments = (new PositionShareBar(['favor' => 1, 'contra' => 1, 'abstencao' => 1]))->segments();
+        $segments = (new ShareBar(['favor' => 1, 'contra' => 1, 'abstencao' => 1]))->segments();
 
         $steps = array_sum(array_map(fn (array $segment): int => (int) (preg_match('#w-(\d+)/20#', $segment['classes'], $m) ? $m[1] : 20), $segments));
         $this->assertSame(20, $steps);
@@ -112,7 +112,7 @@ class BudgetIconsTest extends TestCase
 
     public function test_the_position_bar_leaves_out_a_position_nobody_took(): void
     {
-        $segments = (new PositionShareBar(['favor' => 0, 'contra' => 0, 'abstencao' => 132]))->segments();
+        $segments = (new ShareBar(['favor' => 0, 'contra' => 0, 'abstencao' => 132]))->segments();
 
         $this->assertCount(1, $segments);
         $this->assertStringContainsString('w-full', $segments[0]['classes']);
@@ -121,7 +121,7 @@ class BudgetIconsTest extends TestCase
 
     public function test_the_position_bar_is_empty_without_votes(): void
     {
-        $this->assertSame([], (new PositionShareBar([]))->segments());
-        $this->blade('<x-position-share-bar :counts="[]" />')->assertDontSee('w-full', false);
+        $this->assertSame([], (new ShareBar([]))->segments());
+        $this->blade('<x-share-bar :counts="[]" />')->assertDontSee('w-full', false);
     }
 }
