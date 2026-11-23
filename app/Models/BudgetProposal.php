@@ -78,6 +78,14 @@ class BudgetProposal extends Model
         return $this->belongsToMany(BudgetTopic::class);
     }
 
+    /**
+     * The articles of the Government's bill this amendment changes.
+     */
+    public function articles(): BelongsToMany
+    {
+        return $this->belongsToMany(BudgetArticle::class)->orderBy('position');
+    }
+
     public function votes(): HasMany
     {
         return $this->hasMany(BudgetVote::class)->orderBy('sequence');

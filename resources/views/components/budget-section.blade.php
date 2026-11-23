@@ -6,6 +6,7 @@
             'inline-flex shrink-0 rounded-xl p-2',
             'bg-republic-100 text-republic-700 dark:bg-republic-950 dark:text-republic-400' => $accent === 'green',
             'bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-400' => $accent === 'blue',
+            'bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-400' => $accent === 'indigo',
         ])>
             <x-budget-theme-icon :icon="$icon" class="size-5" />
         </span>

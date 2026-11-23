@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Budget;
+use App\Models\BudgetArticle;
 use App\Models\BudgetProposal;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Symfony\Component\HttpFoundation\Response;
@@ -65,6 +66,47 @@ class BudgetResolver
         abort_if($proposal === null, Response::HTTP_NOT_FOUND);
 
         $this->redirect($this->legislatureContext->route($routeName, ['year' => $budget->year, 'proposal' => $proposal->slug], $budget->legislature));
+    }
+
+    /**
+     * By its slug; else by the article id an address ends in, as when two articles shared a
+     * slug; else by its number ("artigo-60", "artigo-28-a-…") when only one article has it.
+     */
+    public function article(Budget $budget, string $slug, string $routeName): BudgetArticle
+    {
+        $slug = strtolower($slug);
+        $articles = BudgetArticle::query()->where('budget_id', $budget->id);
+
+        if ($article = (clone $articles)->where('slug', $slug)->first()) {
+            return $article;
+        }
+
+        $article = preg_match('/-(\d{4,})$/', $slug, $match)
+            ? (clone $articles)->where('id', (int) $match[1])->first()
+            : null;
+
+        if ($article === null) {
+            $segments = explode('-', $slug);
+            $candidates = array_values(array_filter([
+                count($segments) >= 3 ? implode('-', array_slice($segments, 0, 3)) : null,
+                count($segments) >= 2 ? implode('-', array_slice($segments, 0, 2)) : null,
+            ]));
+
+            foreach ($candidates as $numberSlug) {
+                $matches = (clone $articles)->where('number_slug', $numberSlug)->limit(2)->get();
+
+                // Several articles with that number: none of them is the one asked for.
+                if ($matches->isNotEmpty()) {
+                    $article = $matches->count() === 1 ? $matches->first() : null;
+
+                    break;
+                }
+            }
+        }
+
+        abort_if($article === null, Response::HTTP_NOT_FOUND);
+
+        $this->redirect($this->legislatureContext->route($routeName, ['year' => $budget->year, 'article' => $article->slug], $budget->legislature));
     }
 
     private function redirect(string $url): never

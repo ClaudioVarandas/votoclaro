@@ -39,6 +39,7 @@ class BudgetController extends Controller
             'parties' => $this->budgetStats->parties($budget),
             'themes' => $this->budgetStats->themes($budget),
             'topics' => $this->budgetStats->topics($budget),
+            'articles' => $this->budgetStats->articles($budget),
         ]);
     }
 }

@@ -1,0 +1,662 @@
+{
+ "#comment": [],
+ "Item": [
+  {
+   "ID": "78356",
+   "ID_Pai": "-1",
+   "Tipo": "Diplomas a Modificar",
+   "Numero": "Decreto-Lei n.º 498/72, de 9 de dezembro",
+   "Titulo": "Estatuto da Aposentação",
+   "Texto": null,
+   "Estado": "Entrada",
+   "Artigos": {
+    "Artigo": [
+     {
+      "ID_Art": "78357",
+      "ID_Pai": "78356",
+      "Tipo": "Diplomas a Modificar",
+      "Numero": "Artigo 37.º-A",
+      "Titulo": "Aposentação antecipada",
+      "Texto": "1 - Podem requerer a aposentação antecipada, independentemente de submissão a junta médica e sem prejuízo da aplicação do regime de pensão unificada, os subscritores que tenham, pelo menos, 60 anos de idade e que, enquanto tiverem essa idade, tenham completado, pelo menos, 40 anos de exercício efetivo de funções.\r\n\r\n2 - O valor da pensão de aposentação antecipada prevista no número anterior é calculado nos termos gerais e reduzido pela aplicação de um factor de redução determinado pela fórmula 1 - x, em que x é igual à taxa de redução do valor da pensão.\r\n\r\n3 - A taxa global de redução é o produto do número de meses de antecipação em relação à idade normal de acesso à pensão de velhice que sucessivamente estiver estabelecida no sistema previdencial do regime geral de segurança social ou à idade pessoal de acesso à pensão de velhice pela taxa mensal de 0,5 %.\r\n\r\n4 - (Revogado).\r\n\r\n5 - Às pensões atribuídas ao abrigo do n.º 1 não é aplicado o fator de sustentabilidade.",
+      "Estado": "Entrada"
+     },
+     {
+      "ID_Art": "78486",
+      "ID_Pai": "78356",
+      "Tipo": "Diplomas a Modificar",
+      "Numero": "Artigo 37.º-B",
+      "Titulo": "Aposentação por carreira longa",
+      "Texto": "1 - Podem requerer a aposentação, independentemente de submissão a junta médica e sem prejuízo da aplicação do regime da pensão unificada, os subscritores da CGA com, pelo menos, 60 anos de idade e que:\r\na) Tendo sido inscritos na CGA ou no regime geral de segurança social em idade igual ou inferior a 16 anos, tenham, pelo menos, 46 anos de serviço;\r\nb) Independentemente do momento em que tenham sido inscritos na CGA ou no regime geral de segurança social, tenham, pelo menos, 48 anos de serviço.\r\n2 - Para efeitos do disposto no número anterior, releva apenas o tempo de exercício efetivo de funções.\r\n3 - O valor da pensão de aposentação atribuída ao abrigo do n.º 1 é calculado nos termos gerais, sem redução por aplicação do fator de sustentabilidade ou de penalizações por antecipação relativamente à idade normal de acesso à pensão de velhice.\r\n4 - A modalidade de aposentação por carreira longa prevista no presente artigo não é aplicável aos subscritores da CGA que beneficiam de regimes especiais em matéria de condições de aposentação ou reforma ou em matéria de regras de cálculo ou atualização da pensão, nomeadamente os profissionais abrangidos pelos Decretos-Leis n.os 3/2017 e 4/2017, de 6 de janeiro, os magistrados e os embaixadores e ministros plenipotenciários.",
+      "Estado": "Entrada"
+     }
+    ]
+   },
+   "PropostasDeAlteracao": null,
+   "DiplomasaModificar": null,
+   "IniciativasMapas": null,
+   "RequerimentosDeAvocacao": null
+  },
+  {
+   "ID": "74337",
+   "ID_Pai": "-3",
+   "Tipo": "Iniciativas/Mapas",
+   "Numero": "Mapa 1",
+   "Titulo": "Mapa das despesas por missão de base orgânica, desagregadas por programas dos subsetores da Administração Central e da Segurança Social",
+   "Texto": null,
+   "Estado": "Entrada",
+   "Artigos": null,
+   "PropostasDeAlteracao": null,
+   "DiplomasaModificar": null,
+   "IniciativasMapas": null,
+   "RequerimentosDeAvocacao": null
+  },
+  {
+   "ID": "74309",
+   "ID_Pai": "-2",
+   "Tipo": "Iniciativas/Artigos",
+   "Numero": "Artigo 1.º",
+   "Titulo": "Objeto",
+   "Texto": "1 - É aprovado pela presente lei o Orçamento do Estado para o ano de 2026, constante dos mapas seguintes:\r\na) Mapa 1, com as despesas por missão de base orgânica, desagregadas por programas dos subsetores da administração central e da segurança social;\r\nb) Mapa 2, relativo à classificação funcional das despesas do subsetor da administração central;\r\nc) Mapa 3, relativo à classificação económica das despesas do subsetor da administração central;\r\nd) Mapa 4, relativo à classificação orgânica das despesas do subsetor da administração central;\r\ne) Mapa 5, relativo à classificação económica das rec",
+   "Estado": "Aprovado(a) em Comissão",
+   "Artigos": null,
+   "PropostasDeAlteracao": {
+    "Proposta": [
+     {
+      "ID_Pai": "74309",
+      "ID_PA": "25186",
+      "Objeto": "Alínea d), N.º 1, Artigo 1.º",
+      "Data": "07/11/2025 17:49:00",
+      "Apresentado": "Comissão",
+      "Incide": "Mapas",
+      "Tipo": "Substituição",
+      "Estado": "Rejeitado(a) em Comissão",
+      "Ficheiro": "http://app.parlamento.pt/webutils/docs/doc.pdf?path=6148523063484d364c793942556b356c6443397a6158526c63793959566b6c4a544556484c3039464c7a49774d6a59794d4449314d5441774f533951515338324e475a6c4d57566c4d53316a4e6d45334c5451794d7a51744f574e6b597931694d6a5a684d6a4e684e6a6b785a6a67756347526d&Fich=64fe1ee1-c6a7-4234-9cdc-b26a23a691f8.pdf&Inline=true"
+     },
+     {
+      "ID_Pai": "74309",
+      "ID_PA": "24989",
+      "Objeto": "Alínea d), N.º 1, Artigo 1.º",
+      "Data": "07/11/2025 16:30:00",
+      "Apresentado": "Comissão",
+      "Incide": "Mapas",
+      "Tipo": "Substituição",
+      "Estado": "Rejeitado(a) em Comissão",
+      "Ficheiro": "http://app.parlamento.pt/webutils/docs/doc.pdf?path=6148523063484d364c793942556b356c6443397a6158526c63793959566b6c4a544556484c3039464c7a49774d6a59794d4449314d5441774f5339515153396d5a5449355a6a6c6d595330334e32597a4c5451784f4751744f5441304d5330304e7a637a4d3259784d444d7a4e7a45756347526d&Fich=fe29f9fa-77f3-418d-9041-47733f103371.pdf&Inline=true"
+     },
+     {
+      "ID_Pai": "74309",
+      "ID_PA": "24986",
+      "Objeto": "Alínea d), N.º 1, Artigo 1.º",
+      "Data": "07/11/2025 16:29:00",
+      "Apresentado": "Comissão",
+      "Incide": "Mapas",
+      "Tipo": "Substituição",
+      "Estado": "Rejeitado(a) em Comissão",
+      "Ficheiro": "http://app.parlamento.pt/webutils/docs/doc.pdf?path=6148523063484d364c793942556b356c6443397a6158526c63793959566b6c4a544556484c3039464c7a49774d6a59794d4449314d5441774f533951515338314e6d45354e47566a4e533168596a4e694c5451344f5455744f4442694e5330795a475a695a6a45345a574e684e5449756347526d&Fich=56a94ec5-ab3b-4895-80b5-2dfbf18eca52.pdf&Inline=true"
+     }
+    ]
+   },
+   "DiplomasaModificar": null,
+   "IniciativasMapas": {
+    "IniciativaMapa": [
+     {
+      "MapasNumero": "Mapa 1",
+      "MapasTitulo": "Mapa das despesas por missão de base orgânica, desagregadas por programas dos subsetores da Administração Central e da Segurança Social",
+      "MapasEstado": "Entrada",
+      "MapasLink": null
+     },
+     {
+      "MapasNumero": "Mapa 2",
+      "MapasTitulo": "Mapa relativo à classificação funcional das despesas do subsetor da Administração Central",
+      "MapasEstado": "Entrada",
+      "MapasLink": null
+     },
+     {
+      "MapasNumero": "Mapa 3",
+      "MapasTitulo": "Mapa relativo à classificação económica das despesas do subsetor da Administração Central",
+      "MapasEstado": "Entrada",
+      "MapasLink": null
+     },
+     {
+      "MapasNumero": "Mapa 4",
+      "MapasTitulo": "Mapa relativo à classificação orgânica das despesas do subsetor da Administração Central",
+      "MapasEstado": "Entrada",
+      "MapasLink": null
+     },
+     {
+      "MapasNumero": "Mapa 5",
+      "MapasTitulo": "Mapa relativo à classificação económica das receitas públicas do subsetor da Administração Central",
+      "MapasEstado": "Entrada",
+      "MapasLink": null
+     },
+     {
+      "MapasNumero": "Mapa 6",
+      "MapasTitulo": "Mapa relativo às despesas com vinculações externas e despesas obrigatórias",
+      "MapasEstado": "Entrada",
+      "MapasLink": null
+     },
+     {
+      "MapasNumero": "Mapa 7",
+      "MapasTitulo": "Mapa relativo à classificação funcional das despesas de cada sistema e subsistema e do total do subsector da Segurança Social",
+      "MapasEstado": "Entrada",
+      "MapasLink": null
+     },
+     {
+      "MapasNumero": "Mapa 8",
+      "MapasTitulo": "Mapa relativo à classificação económica das despesas de cada sistema e subsistema e do total do subsetor da Segurança Social",
+      "MapasEstado": "Entrada",
+      "MapasLink": null
+     },
+     {
+      "MapasNumero": "Mapa 9",
+      "MapasTitulo": "Mapa relativo à classificação económica das receitas de cada sistema e subsistema e do total do subsetor da Segurança Social",
+      "MapasEstado": "Entrada",
+      "MapasLink": null
+     },
+     {
+      "MapasNumero": "Mapa 10",
+      "MapasTitulo": "Receitas tributárias cessantes dos subsetores da Administração Central e da Segurança Social",
+      "MapasEstado": "Entrada",
+      "MapasLink": null
+     },
+     {
+      "MapasNumero": "Mapa 11",
+      "MapasTitulo": "Transferências para as regiões autónomas",
+      "MapasEstado": "Entrada",
+      "MapasLink": null
+     },
+     {
+      "MapasNumero": "Mapa 12",
+      "MapasTitulo": "Transferências para os municípios",
+      "MapasEstado": "Entrada",
+      "MapasLink": null
+     },
+     {
+      "MapasNumero": "Mapa 13",
+      "MapasTitulo": "Transferências para as freguesias",
+      "MapasEstado": "Entrada",
+      "MapasLink": null
+     },
+     {
+      "MapasNumero": "Mapa 14",
+      "MapasTitulo": "Mapa relativo às responsabilidades contratuais plurianuais das entidades dos subsetores da Administração Central",
+      "MapasEstado": "Entrada",
+      "MapasLink": null
+     }
+    ]
+   },
+   "Votacoes": {
+    "Votacao": [
+     {
+      "Descricoes": {
+       "Descricao": [
+        "Alínea a), N.º 1, Artigo 1.º",
+        "Alínea b), N.º 1, Artigo 1.º",
+        "Alínea c), N.º 1, Artigo 1.º"
+       ]
+      },
+      "DiplomasTerceirosouPropostasDeLeiMapas": {
+       "Diploma": "S2VP43247"
+      },
+      "SubDescricao": null,
+      "Data": "26/11/2025 00:00:00",
+      "ResultadoCompleto": "Aprovado(a) em Comissão",
+      "Resultado": "Aprovado(a)",
+      "GruposParlamentares": {
+       "GrupoParlamentar": [
+        "Partido Social Democrata",
+        "Chega",
+        "Partido Socialista",
+        "Iniciativa Liberal",
+        "Livre",
+        "Partido Comunista Português",
+        "Centro Democrático Social - Partido Popular",
+        "Bloco de Esquerda",
+        "Pessoas-Animais-Natureza"
+       ],
+       "Voto": [
+        "Favor",
+        "Contra",
+        "Abstenção",
+        "Abstenção",
+        "Contra",
+        "Contra",
+        "Favor",
+        "Contra",
+        "Abstenção"
+       ]
+      }
+     },
+     {
+      "Descricoes": {
+       "Descricao": "Mapa 1"
+      },
+      "DiplomasTerceirosouPropostasDeLeiMapas": {
+       "Diploma": "S3VP43293"
+      },
+      "SubDescricao": "Mapa das despesas por missão de base orgânica, desagregadas por programas dos subsetores da Administração Central e da Segurança Social",
+      "Data": "26/11/2025 00:00:00",
+      "ResultadoCompleto": "Aprovado(a) em Comissão",
+      "Resultado": "Aprovado(a)",
+      "GruposParlamentares": {
+       "GrupoParlamentar": [
+        "Partido Social Democrata",
+        "Chega",
+        "Partido Socialista",
+        "Iniciativa Liberal",
+        "Livre",
+        "Partido Comunista Português",
+        "Centro Democrático Social - Partido Popular",
+        "Bloco de Esquerda",
+        "Pessoas-Animais-Natureza"
+       ],
+       "Voto": [
+        "Favor",
+        "Contra",
+        "Abstenção",
+        "Abstenção",
+        "Contra",
+        "Contra",
+        "Favor",
+        "Contra",
+        "Abstenção"
+       ]
+      }
+     },
+     {
+      "Descricoes": {
+       "Descricao": "Mapa 2"
+      },
+      "DiplomasTerceirosouPropostasDeLeiMapas": {
+       "Diploma": "S3VP43298"
+      },
+      "SubDescricao": "Mapa relativo à classificação funcional das despesas do subsetor da Administração Central",
+      "Data": "26/11/2025 00:00:00",
+      "ResultadoCompleto": "Aprovado(a) em Comissão",
+      "Resultado": "Aprovado(a)",
+      "GruposParlamentares": {
+       "GrupoParlamentar": [
+        "Partido Social Democrata",
+        "Chega",
+        "Partido Socialista",
+        "Iniciativa Liberal",
+        "Livre",
+        "Partido Comunista Português",
+        "Centro Democrático Social - Partido Popular",
+        "Bloco de Esquerda",
+        "Pessoas-Animais-Natureza"
+       ],
+       "Voto": [
+        "Favor",
+        "Contra",
+        "Abstenção",
+        "Abstenção",
+        "Contra",
+        "Contra",
+        "Favor",
+        "Contra",
+        "Abstenção"
+       ]
+      }
+     }
+    ]
+   },
+   "RequerimentosDeAvocacao": null
+  },
+  {
+   "ID": "74839",
+   "ID_Pai": "-2",
+   "Tipo": "Iniciativas/Artigos",
+   "Numero": "Artigo 60.º",
+   "Titulo": "Alteração ao Código do Imposto sobre o Rendimento das Pessoas Singulares",
+   "Texto": "Os artigos 68.º e 70.º do Código do Imposto sobre o Rendimento das Pessoas Singulares (Código do IRS), aprovado pelo Decreto-Lei n.º 442-A/88, de 30 de novembro, na sua redação atual, passam a ter a seguinte redação:\r\n«Artigo 68.º\r\n[…]\r\n1 -  […]: (Ver TABELA Alteração ao Código do Imposto sobre o Rendimento das Pessoas Singulares) \r\n\r\nArtigo 70.º\r\n[...]\r\n1 - O valor de referência do mínimo de existência é igual ao maior valor entre 12 880 € e 1,5 × 14 × IAS. \r\n2 - [...].\r\n3 - [...]. \r\n4 - [...]. \r\n5 - [...]. \r\n6 - [...].»",
+   "Estado": "Aprovado(a) em Comissão com Alterações",
+   "Artigos": null,
+   "PropostasDeAlteracao": {
+    "Proposta": [
+     {
+      "ID_Pai": "74839",
+      "ID_PA": "25329",
+      "Objeto": "Artigo 60.º",
+      "Data": "07/11/2025 19:57:00",
+      "Apresentado": "Comissão",
+      "Incide": "Articulado",
+      "Tipo": "Substituição",
+      "Estado": "Rejeitado(a) em Comissão",
+      "Ficheiro": "http://app.parlamento.pt/webutils/docs/doc.pdf?path=6148523063484d364c793942556b356c6443397a6158526c63793959566b6c4a544556484c3039464c7a49774d6a59794d4449314d5441774f533951515338345a574e6c4e44466a5a6930355a6a426b4c5451304d4459744f4464694e6930794e544179597a4d344e5449334d4749756347526d&Fich=8ece41cf-9f0d-4406-87b6-2502c385270b.pdf&Inline=true"
+     },
+     {
+      "ID_Pai": "74839",
+      "ID_PA": "25300",
+      "Objeto": "Artigo 60.º",
+      "Data": "07/11/2025 19:23:00",
+      "Apresentado": "Comissão",
+      "Incide": "Articulado",
+      "Tipo": "Substituição",
+      "Estado": "Aprovado(a) Parcialmente em Comissão",
+      "Ficheiro": "http://app.parlamento.pt/webutils/docs/doc.pdf?path=6148523063484d364c793942556b356c6443397a6158526c63793959566b6c4a544556484c3039464c7a49774d6a59794d4449314d5441774f533951515338344f545979595468694f4331684e325a6b4c5451344d5451744f4455324f433030596a4d784e574a6d5a446c694e6a55756347526d&Fich=8962a8b8-a7fd-4814-8568-4b315bfd9b65.pdf&Inline=true"
+     },
+     {
+      "ID_Pai": "74839",
+      "ID_PA": "25299",
+      "Objeto": "Artigo 60.º",
+      "Data": "07/11/2025 19:22:00",
+      "Apresentado": "Comissão",
+      "Incide": "Articulado",
+      "Tipo": "Aditamento (Números e Alíneas)",
+      "Estado": "Rejeitado(a) em Comissão",
+      "Ficheiro": "http://app.parlamento.pt/webutils/docs/doc.pdf?path=6148523063484d364c793942556b356c6443397a6158526c63793959566b6c4a544556484c3039464c7a49774d6a59794d4449314d5441774f533951515338794e54457a4f546c6b4d693031593249784c54526c595451744f446b784d6930304f4455325a4749354d6a686c4f544d756347526d&Fich=251399d2-5cb1-4ea4-8912-4856db928e93.pdf&Inline=true"
+     }
+    ]
+   },
+   "DiplomasaModificar": {
+    "DiplomaaModificar": {
+     "ID_Dip": "74118",
+     "DiplomaTitulo": "Decreto-Lei n.º 442-A/88, de 30 de novembro",
+     "DiplomaSubTitulo": "Aprova o Código do Imposto sobre o Rendimento das Pessoas Singulares (IRS)",
+     "DiplomasArtigos": {
+      "DiplomaArtigo": [
+       {
+        "DiplomaArtigoID": "74303",
+        "DiplomaArtigoTituto": "Artigo 68.º",
+        "DiplomaArtigoSubTitulo": "Taxas gerais",
+        "DiplomaArtigoEstado": "Entrada",
+        "DiplomaArtigoTexto": "1 - As taxas do imposto são as constantes da tabela seguinte:?\r\n\r\n(Ver Tabela em anexo)\r\n\r\n2 - O quantitativo do rendimento coletável, quando superior a 8059 €, é dividido em duas partes, nos seguinte",
+        "DiplomaNumeros": {
+         "DiplomaNumero": {
+          "DiplomaNumeroID": "74306",
+          "DiplomaNumeroTitulo": "N.º 1",
+          "DiplomaNumeroEstado": "Entrada",
+          "DiplomaAlineas": {
+           "DiplomaAlinea": {
+            "DiplomaAlineaTitulo": "Tabela",
+            "DiplomaAlineaEstado": "Entrada"
+           }
+          }
+         }
+        }
+       },
+       {
+        "DiplomaArtigoID": "74315",
+        "DiplomaArtigoTituto": "Artigo 70.º",
+        "DiplomaArtigoSubTitulo": "Mínimo de existência",
+        "DiplomaArtigoEstado": "Entrada",
+        "DiplomaArtigoTexto": "1 - O valor de referência do mínimo de existência é igual ao maior valor entre 12 180 € e 1,5 × 14 × IAS.  (Redação da Lei n.º 45-A/2024, de 31 de dezembro)?\r\n\r\n2* - No apuramento do rendimento coletá",
+        "DiplomaNumeros": {
+         "DiplomaNumero": {
+          "DiplomaNumeroID": "74316",
+          "DiplomaNumeroTitulo": "N.º 1",
+          "DiplomaNumeroEstado": "Entrada",
+          "DiplomaAlineas": null
+         }
+        }
+       }
+      ]
+     },
+     "TextoOuEstado": "Entrada"
+    }
+   },
+   "IniciativasMapas": null,
+   "Votacoes": {
+    "Votacao": [
+     {
+      "Descricoes": {
+       "Descricao": "Tabela, N.º 1, Artigo 68.º do Decreto-Lei n.º 442-A/88, de 30 de novembro (Aprova o Código do Imposto sobre o Rendimento das Pessoas Singulares (IRS))"
+      },
+      "DiplomasTerceirosouPropostasDeLeiMapas": {
+       "Diploma": "S1VP41116"
+      },
+      "SubDescricao": null,
+      "Data": "20/11/2025 00:00:00",
+      "ResultadoCompleto": "Aprovado(a) em Comissão",
+      "Resultado": "Aprovado(a)",
+      "GruposParlamentares": {
+       "GrupoParlamentar": [
+        "Partido Social Democrata",
+        "Chega",
+        "Partido Socialista",
+        "Iniciativa Liberal",
+        "Livre",
+        "Partido Comunista Português",
+        "Centro Democrático Social - Partido Popular",
+        "Bloco de Esquerda",
+        "Pessoas-Animais-Natureza"
+       ],
+       "Voto": [
+        "Favor",
+        "Favor",
+        "Abstenção",
+        "Favor",
+        "Favor",
+        "Contra",
+        "Favor",
+        "Abstenção",
+        "Favor"
+       ]
+      }
+     },
+     {
+      "Descricoes": {
+       "Descricao": "Corpo, Artigo 60.º"
+      },
+      "DiplomasTerceirosouPropostasDeLeiMapas": {
+       "Diploma": "S2VP41129"
+      },
+      "SubDescricao": null,
+      "Data": "20/11/2025 00:00:00",
+      "ResultadoCompleto": "Aprovado(a) em Comissão",
+      "Resultado": "Aprovado(a)",
+      "GruposParlamentares": {
+       "GrupoParlamentar": [
+        "Partido Social Democrata",
+        "Chega",
+        "Partido Socialista",
+        "Iniciativa Liberal",
+        "Livre",
+        "Partido Comunista Português",
+        "Centro Democrático Social - Partido Popular",
+        "Bloco de Esquerda",
+        "Pessoas-Animais-Natureza"
+       ],
+       "Voto": [
+        "Favor",
+        "Favor",
+        "Abstenção",
+        "Favor",
+        "Contra",
+        "Contra",
+        "Favor",
+        "Contra",
+        "Favor"
+       ]
+      }
+     },
+     {
+      "Descricoes": {
+       "Descricao": "N.º 1, Artigo 70.º do Decreto-Lei n.º 442-A/88, de 30 de novembro (Aprova o Código do Imposto sobre o Rendimento das Pessoas Singulares (IRS))"
+      },
+      "DiplomasTerceirosouPropostasDeLeiMapas": {
+       "Diploma": "S1VP43358"
+      },
+      "SubDescricao": null,
+      "Data": "20/11/2025 00:00:00",
+      "ResultadoCompleto": "Aprovado(a) em Comissão",
+      "Resultado": "Aprovado(a)",
+      "GruposParlamentares": {
+       "GrupoParlamentar": [
+        "Partido Social Democrata",
+        "Chega",
+        "Partido Socialista",
+        "Iniciativa Liberal",
+        "Livre",
+        "Partido Comunista Português",
+        "Centro Democrático Social - Partido Popular",
+        "Bloco de Esquerda",
+        "Pessoas-Animais-Natureza"
+       ],
+       "Voto": [
+        "Favor",
+        "Favor",
+        "Abstenção",
+        "Favor",
+        "Favor",
+        "Abstenção",
+        "Favor",
+        "Abstenção",
+        "Favor"
+       ]
+      }
+     }
+    ]
+   },
+   "RequerimentosDeAvocacao": null
+  },
+  {
+   "ID": "74186",
+   "ID_Pai": "-2",
+   "Tipo": "Iniciativas/Artigos",
+   "Numero": "Artigo 25.º",
+   "Titulo": "Recrutamento de trabalhadores nos municípios em situação de saneamento ou de rutura",
+   "Texto": "1 - Os municípios que, a 31 de dezembro de 2025, se encontrem na situação prevista no n.º 1 do artigo 58.º da Lei n.º 73/2013, de 3 de setembro, na sua redação atual, estão impedidos de proceder à abertura de procedimentos concursais, à exceção dos que decorram da conclusão do PREVPAP e das necessidades de recrutamento de trabalhadores no âmbito do processo de descentralização de competências ao abrigo da Lei n.º 50/2018, de 16 de agosto, e respetivos diplomas setoriais. \r\n2 - Em situações excecionais, devidamente fundamentadas, a assembleia municipal pode autorizar a abertura dos procedimento",
+   "Estado": "Aprovado(a) em Plenário",
+   "Artigos": null,
+   "PropostasDeAlteracao": null,
+   "DiplomasaModificar": null,
+   "IniciativasMapas": null,
+   "Votacoes": {
+    "Votacao": {
+     "Descricoes": {
+      "Descricao": [
+       "N.º 1, Artigo 25.º",
+       "N.º 2, Artigo 25.º",
+       "Alínea a), N.º 2, Artigo 25.º",
+       "Alínea b), N.º 2, Artigo 25.º",
+       "Alínea c), N.º 2, Artigo 25.º",
+       "Alínea d), N.º 2, Artigo 25.º",
+       "Corpo, N.º 2, Artigo 25.º",
+       "N.º 3, Artigo 25.º",
+       "N.º 4, Artigo 25.º",
+       "N.º 5, Artigo 25.º",
+       "N.º 6, Artigo 25.º"
+      ]
+     },
+     "DiplomasTerceirosouPropostasDeLeiMapas": {
+      "Diploma": "S2VP41387"
+     },
+     "SubDescricao": null,
+     "Data": "21/11/2025 00:00:00",
+     "ResultadoCompleto": "Aprovado(a) em Plenário",
+     "Resultado": "Aprovado(a)",
+     "GruposParlamentares": {
+      "GrupoParlamentar": [
+       "Partido Social Democrata",
+       "Chega",
+       "Partido Socialista",
+       "Iniciativa Liberal",
+       "Livre",
+       "Partido Comunista Português",
+       "Centro Democrático Social - Partido Popular",
+       "Bloco de Esquerda",
+       "Pessoas-Animais-Natureza",
+       "Juntos pelo Povo"
+      ],
+      "Voto": [
+       "Favor",
+       "Abstenção",
+       "Abstenção",
+       "Abstenção",
+       "Contra",
+       "Contra",
+       "Favor",
+       "Contra",
+       "Contra",
+       "Contra"
+      ]
+     }
+    }
+   },
+   "RequerimentosDeAvocacao": null
+  },
+  {
+   "ID": "78337",
+   "ID_Pai": "-2",
+   "Tipo": "Iniciativas/Artigos",
+   "Numero": "Artigo 38.º-A",
+   "Titulo": "Suplemento extraordinário das pensões",
+   "Texto": "Em 2026 o Governo procederá ao pagamento de um suplemento extraordinário das pensões, em função da evolução da execução orçamental e das respetivas tendências em termos de receita e de\r\ndespesa.",
+   "Estado": "Aprovado(a) em Plenário",
+   "Artigos": null,
+   "PropostasDeAlteracao": {
+    "Proposta": {
+     "ID_Pai": "78337",
+     "ID_PA": "24266",
+     "Objeto": "Artigo 38.º-A",
+     "Data": "06/11/2025 20:40:00",
+     "Apresentado": "Comissão",
+     "Incide": "Articulado",
+     "Tipo": "Aditamento (Artigo PPL)",
+     "Estado": "Aprovado(a) em Plenário",
+     "Ficheiro": "http://app.parlamento.pt/webutils/docs/doc.pdf?path=6148523063484d364c793942556b356c6443397a6158526c63793959566b6c4a544556484c3039464c7a49774d6a59794d4449314d5441774f5339515153396b5a6a566a5a446733595331684d6a557a4c54526c4f4467744f4445325a4330335a6a6c68596d4a6b4d4745774f4459756347526d&Fich=df5cd87a-a253-4e88-816d-7f9abbd0a086.pdf&Inline=true"
+    }
+   },
+   "DiplomasaModificar": null,
+   "IniciativasMapas": null,
+   "Votacoes": null,
+   "RequerimentosDeAvocacao": null
+  },
+  {
+   "ID": "79451",
+   "ID_Pai": "-2",
+   "Tipo": "Iniciativas/Artigos",
+   "Numero": "Artigo 38.º-A",
+   "Titulo": "Regularização da situação contributiva dos funcionários dos Serviços Periféricos Externos do Ministério dos Negócios Estrangeiros",
+   "Texto": "1 - Em 2026, o Governo procede à inscrição dos atuais funcionários dos Serviços Periféricos Externos do Ministério dos Negócios Estrangeiros no sistema de Segurança Social nacional, com as obrigações e direitos daí decorrentes, regularizando a sua situação contributiva, sem prejuízo do disposto nos regulamentos europeus ou instrumentos internacionais a que Portugal está vinculado, cabendo ao Estado português suportar os encargos por conta da entidade empregadora.\r\n2 - Tendo presente a obrigatoriedade de garantir a proteção social a todos os trabalhadores dos Serviços Periféricos externos do MN",
+   "Estado": "Aprovado(a) em Comissão",
+   "Artigos": null,
+   "PropostasDeAlteracao": {
+    "Proposta": {
+     "ID_Pai": "79451",
+     "ID_PA": "24969",
+     "Objeto": "Artigo 38.º-A",
+     "Data": "07/11/2025 16:24:00",
+     "Apresentado": "Comissão",
+     "Incide": "Articulado",
+     "Tipo": "Aditamento (Artigo PPL)",
+     "Estado": "Aprovado(a) em Comissão",
+     "Ficheiro": "http://app.parlamento.pt/webutils/docs/doc.pdf?path=6148523063484d364c793942556b356c6443397a6158526c63793959566b6c4a544556484c3039464c7a49774d6a59794d4449314d5441774f533951515338344f544d774f475269597931684d444e684c5451334e6a41744f544d774e43316a4d6a63324f5455345a6a526c5a4455756347526d&Fich=89308dbc-a03a-4760-9304-c276958f4ed5.pdf&Inline=true"
+    }
+   },
+   "DiplomasaModificar": null,
+   "IniciativasMapas": null,
+   "Votacoes": null,
+   "RequerimentosDeAvocacao": null
+  },
+  {
+   "ID": "76142",
+   "ID_Pai": "-2",
+   "Tipo": "Iniciativas/Artigos",
+   "Numero": "Artigo 10.º-A",
+   "Titulo": "Alargamento do Porta 65+ às vítimas de violência doméstica",
+   "Texto": "O Governo fica autorizado a efetuar as alterações orçamentais necessárias a assegurar a inclusão das vítimas de violência doméstica, a quem tenha sido concedido o respetivo estatuto, e que se vejam obrigadas a sair da sua residência em razão da prática do crime, no âmbito dos beneficiários do Porta 65+, previsto no título III do Decreto-Lei n.º 308/2007, de 3 de setembro.",
+   "Estado": "Aprovado(a) por Unanimidade em Comissão",
+   "Artigos": null,
+   "PropostasDeAlteracao": {
+    "Proposta": {
+     "ID_Pai": "76142",
+     "ID_PA": "23226",
+     "Objeto": "Artigo 10.º-A",
+     "Data": "29/10/2025 10:16:00",
+     "Apresentado": "Comissão",
+     "Incide": "Articulado",
+     "Tipo": "Aditamento (Artigo PPL)",
+     "Estado": "Aprovado(a) por Unanimidade em Comissão",
+     "Ficheiro": "http://app.parlamento.pt/webutils/docs/doc.pdf?path=6148523063484d364c793942556b356c6443397a6158526c63793959566b6c4a544556484c3039464c7a49774d6a59794d4449314d5441774f5339515153387a4f544e6d596a4e6b4d7930784e574a6d4c54526a4d545574596d55774e4330304f474579596a41314e6a52695a446b756347526d&Fich=393fb3d3-15bf-4c15-be04-48a2b0564bd9.pdf&Inline=true"
+    }
+   },
+   "DiplomasaModificar": null,
+   "IniciativasMapas": null,
+   "Votacoes": null,
+   "RequerimentosDeAvocacao": null
+  }
+ ]
+}

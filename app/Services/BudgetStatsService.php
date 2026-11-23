@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\BudgetProposalStatus;
 use App\Enums\BudgetVotePosition;
 use App\Models\Budget;
+use App\Models\BudgetArticle;
 use App\Models\BudgetProposal;
 use App\Models\BudgetTheme;
 use App\Models\BudgetTopic;
@@ -29,6 +30,10 @@ class BudgetStatsService
 
     /** A topic is ranked by division once at least this many of its amendments were voted. */
     private const MIN_VOTED_FOR_DIVISION = 5;
+
+    private const MOST_AMENDED_LISTED = 6;
+
+    public function __construct(private BudgetMatrixService $matrix) {}
 
     /**
      * @return array{total: int, approved: int, rejected: int, pending: int, voted: int}
@@ -57,7 +62,7 @@ class BudgetStatsService
      * Per party, in the Parliament's order: the amendments it proposed, how many passed, and how
      * often it voted against the amendments of other parties in the vote that decided them.
      *
-     * @return list<array{acronym: string, proposed: int, approved: int, approval_rate: float, others_voted: int, against_others: int, against_rate: float}>
+     * @return list<array{acronym: string, proposed: int, approved: int, approval_rate: float, others_voted: int, against_others: int, against_rate: float, articles_voted: int, articles: array{favor: int, contra: int, abstencao: int}, articles_favor_rate: float}>
      */
     public function parties(Budget $budget): array
     {
@@ -96,8 +101,10 @@ class BudgetStatsService
                 ->get()
                 ->keyBy('party');
 
+            $articleSupport = $this->articleSupport($budget);
+
             return $this->partyOrder($budget, $proposed->keys())
-                ->map(function (string $acronym) use ($proposed, $onOthers): array {
+                ->map(function (string $acronym) use ($proposed, $onOthers, $articleSupport): array {
                     $count = (int) ($proposed[$acronym]->proposed ?? 0);
                     $approved = (int) ($proposed[$acronym]->approved ?? 0);
                     $othersVoted = (int) ($onOthers[$acronym]->voted ?? 0);
@@ -111,6 +118,13 @@ class BudgetStatsService
                         'others_voted' => $othersVoted,
                         'against_others' => $againstOthers,
                         'against_rate' => $othersVoted > 0 ? round($againstOthers / $othersVoted * 100, 1) : 0.0,
+                        'articles_voted' => $articleSupport[$acronym]['voted'] ?? 0,
+                        'articles' => [
+                            'favor' => $articleSupport[$acronym]['favor'] ?? 0,
+                            'contra' => $articleSupport[$acronym]['contra'] ?? 0,
+                            'abstencao' => $articleSupport[$acronym]['abstencao'] ?? 0,
+                        ],
+                        'articles_favor_rate' => $articleSupport[$acronym]['rate'] ?? 0.0,
                     ];
                 })
                 ->values()
@@ -121,6 +135,63 @@ class BudgetStatsService
     /**
      * @return Collection<int, BudgetTheme> each with proposals_count
      */
+    /**
+     * The Government's bill in figures: its articles, how many were approved and voted, and the
+     * ones the parties tried most to change.
+     *
+     * @return array{total: int, approved: int, pending: int, voted: int, most_amended: Collection<int, BudgetArticle>}
+     */
+    public function articles(Budget $budget): array
+    {
+        return Cache::remember("budget.{$budget->id}.articles", self::CACHE_TTL, function () use ($budget): array {
+            $statuses = BudgetArticle::query()
+                ->where('budget_id', $budget->id)
+                ->selectRaw('status, count(*) as total')
+                ->groupBy('status')
+                ->toBase()
+                ->pluck('total', 'status');
+
+            return [
+                'total' => (int) $statuses->sum(),
+                'approved' => (int) ($statuses[BudgetProposalStatus::Approved->value] ?? 0) + (int) ($statuses[BudgetProposalStatus::PartiallyApproved->value] ?? 0),
+                'pending' => (int) ($statuses[BudgetProposalStatus::Pending->value] ?? 0),
+                'voted' => BudgetArticle::query()->where('budget_id', $budget->id)->whereHas('finalVotes')->count(),
+                'most_amended' => BudgetArticle::query()
+                    ->where('budget_id', $budget->id)
+                    ->whereHas('proposals')
+                    ->withCount('proposals')
+                    ->orderByDesc('proposals_count')
+                    ->orderBy('position')
+                    ->limit(self::MOST_AMENDED_LISTED)
+                    ->get(),
+            ];
+        });
+    }
+
+    /**
+     * How each party voted the articles of the Government's bill, in the vote that decided each.
+     * An article voted in parts that the party did not vote all alike counts as split.
+     *
+     * @return array<string, array{voted: int, favor: int, contra: int, abstencao: int, rate: float}>
+     */
+    private function articleSupport(Budget $budget): array
+    {
+        $support = [];
+
+        foreach ($this->matrix->cells(BudgetArticle::query()->where('budget_id', $budget->id)) as $positions) {
+            foreach ($positions as $party => $position) {
+                $support[$party] ??= ['voted' => 0, 'favor' => 0, 'contra' => 0, 'abstencao' => 0];
+                $support[$party]['voted']++;
+
+                if (isset($support[$party][$position])) {
+                    $support[$party][$position]++;
+                }
+            }
+        }
+
+        return array_map(fn (array $counts): array => [...$counts, 'rate' => round($counts['favor'] / $counts['voted'] * 100, 1)], $support);
+    }
+
     /**
      * The top of topics three ways, among the topics with most amendments that more than one party
      * proposed on: the ones most parties proposed on, the ones with most amendments, and the ones

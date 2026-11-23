@@ -8,7 +8,7 @@
                     <tr class="bg-sand-50 dark:bg-sand-950">
                         <th scope="col" class="sticky left-0 z-10 min-w-56 bg-sand-50 px-4 pt-4 pb-2 text-left sm:min-w-80 dark:bg-sand-950">
                             <span class="block text-xs font-semibold uppercase tracking-wider text-sand-700 dark:text-sand-300">{{ __('ui.budget.matrix.totals') }}</span>
-                            <span class="mt-0.5 block text-xs font-normal text-sand-500 dark:text-sand-400">{{ trans_choice('ui.budget.matrix.totals_scope', $totalProposals(), ['count' => number_format($totalProposals(), 0, ',', '.')]) }}</span>
+                            <span class="mt-0.5 block text-xs font-normal text-sand-500 dark:text-sand-400">{{ trans_choice($forArticles ? 'ui.budget.articles.totals_scope' : 'ui.budget.matrix.totals_scope', $totalProposals(), ['count' => number_format($totalProposals(), 0, ',', '.')]) }}</span>
                         </th>
                         @foreach ($parties as $party)
                             <th scope="col" class="min-w-11 whitespace-nowrap px-1 pt-4 pb-2 text-center align-bottom text-xs font-semibold text-sand-700 dark:text-sand-300">{{ $party }}</th>
@@ -33,7 +33,7 @@
                 @endif
                 <tr @class(['border-b border-sand-200 dark:border-sand-800', 'border-t-2' => $totals !== []])>
                     <th scope="col" class="sticky left-0 z-10 min-w-56 bg-white px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-sand-500 sm:min-w-80 dark:bg-sand-900 dark:text-sand-400">
-                        {{ __('ui.budget.matrix.proposal') }}
+                        {{ $forArticles ? __('ui.budget.articles.article') : __('ui.budget.matrix.proposal') }}
                     </th>
                     @if ($totals === [])
                         @foreach ($parties as $party)
@@ -48,15 +48,19 @@
                 @foreach ($proposals as $proposal)
                     <tr class="align-top">
                         <th scope="row" class="sticky left-0 z-10 bg-white px-4 py-3 text-left font-normal dark:bg-sand-900">
-                            <a href="{{ $proposalUrl($proposal) }}" class="group block">
+                            @php $eyebrow = $rowEyebrow($proposal); @endphp
+                            <a href="{{ $rowUrl($proposal) }}" class="group block">
                                 <span class="text-xs font-semibold text-sand-500 dark:text-sand-400">
-                                    {{ $proposer($proposal) }} · <span class="font-mono">{{ $proposal->number }}</span>
-                                    @if ($proposal->location())
-                                        <span class="font-normal">· {{ $proposal->location() }}</span>
+                                    @if ($eyebrow['lead'])
+                                        {{ $eyebrow['lead'] }} ·
+                                    @endif
+                                    <span @class(['font-mono' => ! $forArticles])>{{ $eyebrow['code'] }}</span>
+                                    @if ($eyebrow['detail'])
+                                        <span class="font-normal">· {{ $eyebrow['detail'] }}</span>
                                     @endif
                                 </span>
-                                <span class="mt-0.5 line-clamp-2 text-sand-900 group-hover:text-republic-700 group-hover:underline dark:text-sand-100 dark:group-hover:text-republic-400">{{ $proposal->subject() }}</span>
-                                <x-budget-status-badge :status="$proposal->status" class="mt-1" />
+                                <span class="mt-0.5 line-clamp-2 text-sand-900 group-hover:text-republic-700 group-hover:underline dark:text-sand-100 dark:group-hover:text-republic-400">{{ $rowLabel($proposal) }}</span>
+                                <x-budget-status-badge :status="$proposal->status" :article="$forArticles" class="mt-1" />
                             </a>
                         </th>
                         @foreach ($parties as $party)

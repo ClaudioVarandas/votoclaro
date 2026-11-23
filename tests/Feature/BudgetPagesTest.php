@@ -52,7 +52,8 @@ class BudgetPagesTest extends TestCase
             ->assertOk()
             ->assertSee('Orçamento do Estado para 2027')
             ->assertDontSee('Orçamento do Estado para 2025')
-            ->assertSee(__('ui.budget.in_progress'));
+            ->assertSee(__('ui.budget.in_progress'))
+            ->assertSee(__('ui.budget.open_budget'));
 
         $this->get(route('legislatures.budgets.index', 'XVI'))
             ->assertOk()

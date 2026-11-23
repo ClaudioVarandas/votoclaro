@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Console\Commands\Concerns\SelectsBudgets;
 use App\Console\Commands\Concerns\ShowsImportProgress;
+use App\Services\BudgetArticleSyncService;
 use App\Services\BudgetProposalSyncService;
 use App\Services\BudgetTopicService;
 use App\Services\LegislatureContext;
@@ -17,10 +18,14 @@ class ImportBudgetProposals extends Command
 
     protected $signature = 'ar:budget:import {--year= : Year of the State Budget (default: every budget of the current legislature)}';
 
-    protected $description = 'Import the amendments proposed to the State Budget and how each party voted them';
+    protected $description = 'Import the amendments proposed to the State Budget, the articles of the Government\'s bill, and how each party voted them';
 
-    public function handle(LegislatureContext $legislatureContext, BudgetProposalSyncService $syncService, BudgetTopicService $topicService): int
-    {
+    public function handle(
+        LegislatureContext $legislatureContext,
+        BudgetProposalSyncService $syncService,
+        BudgetArticleSyncService $articleSyncService,
+        BudgetTopicService $topicService,
+    ): int {
         $budgets = $this->budgets($legislatureContext);
 
         if ($budgets->isEmpty()) {
@@ -40,6 +45,13 @@ class ImportBudgetProposals extends Command
                 $this->finishImportProgress();
                 $this->info("Sync completed: {$imported} amendments imported.");
                 $this->info('Topics found: '.$topicService->rebuild($budget).'.');
+
+                if ($budget->budget_url) {
+                    $this->info("Downloading the Government's bill for {$budget->year}...");
+                    $articles = $articleSyncService->sync($budget, $this->onDownloaded('articles'), $this->onImported());
+                    $this->finishImportProgress();
+                    $this->info("Sync completed: {$articles} articles imported.");
+                }
             } catch (\Throwable $e) {
                 $this->abortImportProgress();
                 $this->error($e->getMessage());

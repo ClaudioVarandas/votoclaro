@@ -30,6 +30,15 @@
             <x-budget-status-badge :status="$proposal->status" class="text-sm" />
         </div>
 
+        @if ($proposal->articles->isNotEmpty())
+            <p class="rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm text-sky-900 dark:border-sky-900 dark:bg-sky-950 dark:text-sky-200">
+                {{ __('ui.budget.proposal.amends_article') }}
+                @foreach ($proposal->articles as $article)
+                    <a href="{{ $legislatureContext->route('budgets.articles.show', ['year' => $budget->year, 'article' => $article->slug]) }}" class="font-semibold underline hover:text-sky-700 dark:hover:text-sky-300">{{ $article->number }}{{ $article->title ? ' — ' . $article->title : '' }}</a>@if (! $loop->last), @endif
+                @endforeach
+            </p>
+        @endif
+
         <dl class="grid grid-cols-1 gap-px overflow-hidden rounded-2xl border border-sand-200 bg-sand-200 sm:grid-cols-2 dark:border-sand-800 dark:bg-sand-800">
             @php
                 $details = [
@@ -54,50 +63,7 @@
         <section class="space-y-4" aria-labelledby="votes-title">
             <h2 id="votes-title" class="font-serif text-xl font-bold text-sand-900 dark:text-sand-100">{{ __('ui.budget.proposal.votes') }}</h2>
 
-            @forelse ($proposal->votes->sortByDesc('is_final') as $vote)
-                @php
-                    $byParty = $vote->positions->whereNull('deputy')->keyBy('party');
-                    $deputies = $vote->positions->whereNotNull('deputy');
-                @endphp
-                <article class="space-y-4 rounded-2xl border border-sand-200 bg-white p-5 dark:border-sand-800 dark:bg-sand-900">
-                    <header class="flex flex-wrap items-center gap-2">
-                        <span class="text-sm font-semibold text-sand-900 dark:text-sand-100">{{ $vote->stage->label() }}</span>
-                        @if ($vote->date)
-                            <span class="text-sm text-sand-500 dark:text-sand-400">· {{ $vote->date->format('d/m/Y') }}</span>
-                        @endif
-                        @if ($vote->result)
-                            <x-budget-status-badge :status="$vote->result" />
-                        @endif
-                        @if ($vote->is_final)
-                            <span class="rounded-full bg-sand-900 px-2 py-0.5 text-xs font-medium text-white dark:bg-sand-100 dark:text-sand-900">{{ __('ui.budget.proposal.vote_final') }}</span>
-                        @endif
-                    </header>
-                    @if ($vote->subject)
-                        <p class="text-sm text-sand-600 dark:text-sand-400">{{ $vote->subject }}</p>
-                    @endif
-                    <ul class="flex flex-wrap gap-2">
-                        @foreach (collect($parties)->merge($byParty->keys())->unique() as $party)
-                            @continue(! $byParty->has($party))
-                            @php $position = $byParty[$party]->position; @endphp
-                            <li>
-                                <x-party-position-badge :party="$party . ' ' . $position->symbol()" :position="$position->value" title="{{ $party }}: {{ $position->label() }}" />
-                            </li>
-                        @endforeach
-                    </ul>
-                    @if ($deputies->isNotEmpty())
-                        <div>
-                            <p class="text-xs font-semibold uppercase tracking-wider text-sand-500 dark:text-sand-400">{{ __('ui.budget.proposal.deputies') }}</p>
-                            <ul class="mt-2 flex flex-wrap gap-2">
-                                @foreach ($deputies as $deputy)
-                                    <li><x-party-position-badge :party="$deputy->deputy . ($deputy->party ? ' (' . $deputy->party . ')' : '') . ' ' . $deputy->position->symbol()" :position="$deputy->position->value" /></li>
-                                @endforeach
-                            </ul>
-                        </div>
-                    @endif
-                </article>
-            @empty
-                <p class="rounded-2xl border border-sand-200 bg-white p-5 text-sm text-sand-500 dark:border-sand-800 dark:bg-sand-900 dark:text-sand-400">{{ __('ui.budget.proposal.no_votes') }}</p>
-            @endforelse
+            <x-budget-vote-list :votes="$proposal->votes" :parties="$parties" :empty="__('ui.budget.proposal.no_votes')" />
         </section>
 
         @if ($proposal->text)

@@ -41,6 +41,7 @@ class ProgressBar extends Component
         'parliament' => 'bg-parliament-500 dark:bg-parliament-400',
         'amber' => 'bg-amber-500 dark:bg-amber-400',
         'blue' => 'bg-sky-600 dark:bg-sky-400',
+        'indigo' => 'bg-indigo-500 dark:bg-indigo-400',
         'sand' => 'bg-sand-400 dark:bg-sand-500',
     ];
 

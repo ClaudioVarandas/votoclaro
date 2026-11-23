@@ -49,6 +49,11 @@ class Budget extends Model
         return $this->hasMany(BudgetProposal::class);
     }
 
+    public function articles(): HasMany
+    {
+        return $this->hasMany(BudgetArticle::class)->orderBy('position');
+    }
+
     public function topics(): HasMany
     {
         return $this->hasMany(BudgetTopic::class);

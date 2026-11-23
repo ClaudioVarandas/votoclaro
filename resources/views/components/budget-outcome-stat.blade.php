@@ -4,7 +4,7 @@
             <x-budget-outcome-icon :outcome="$outcome" class="p-0.5 [&_svg]:size-3" />
             {{ $label }}
         </dt>
-        <dd @class(['mt-0.5 font-serif text-lg font-bold', $valueClasses()])>{{ $formattedValue() }}</dd>
+        <dd @class(['mt-0.5 text-center font-serif text-lg font-bold', $valueClasses()])>{{ $formattedValue() }}</dd>
     </div>
 @else
     <div {{ $attributes->class(['flex flex-col rounded-2xl border border-sand-200 bg-white p-6 dark:border-sand-800 dark:bg-sand-900']) }}>

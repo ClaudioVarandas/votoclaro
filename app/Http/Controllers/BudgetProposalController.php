@@ -84,7 +84,7 @@ class BudgetProposalController extends Controller
     {
         $budget = $this->resolver->budget($request->route('year'), 'budgets.proposals.show', ['proposal' => $request->route('proposal')]);
         $proposal = $this->resolver->proposal($budget, $request->route('proposal'), 'budgets.proposals.show');
-        $proposal->load(['parties', 'themes', 'votes.positions']);
+        $proposal->load(['parties', 'themes', 'votes.positions', 'articles']);
 
         return view('pages.budgets.proposals.show', [
             'budget' => $budget,

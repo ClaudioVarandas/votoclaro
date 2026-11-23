@@ -58,6 +58,15 @@ enum BudgetProposalStatus: string
         return __('ui.budget.status.'.$this->value);
     }
 
+    /**
+     * The same state said of an article of the Government's bill, which is masculine in
+     * Portuguese ("Aprovado" where an amendment is "Aprovada").
+     */
+    public function articleLabel(): string
+    {
+        return __('ui.budget.article_status.'.$this->value);
+    }
+
     public function color(): string
     {
         return match ($this) {

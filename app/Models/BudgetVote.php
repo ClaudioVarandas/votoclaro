@@ -16,6 +16,7 @@ class BudgetVote extends Model
 
     protected $fillable = [
         'budget_proposal_id',
+        'budget_article_id',
         'sequence',
         'stage',
         'date',
@@ -39,6 +40,11 @@ class BudgetVote extends Model
     public function proposal(): BelongsTo
     {
         return $this->belongsTo(BudgetProposal::class, 'budget_proposal_id');
+    }
+
+    public function article(): BelongsTo
+    {
+        return $this->belongsTo(BudgetArticle::class, 'budget_article_id');
     }
 
     public function positions(): HasMany

@@ -20,7 +20,7 @@
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 @foreach ($budgets as $item)
                     <a href="{{ $legislatureContext->route('budgets.show', ['year' => $item['budget']->year]) }}"
-                       class="group block rounded-2xl border border-sand-200 bg-white p-6 transition-all hover:border-republic-300 hover:shadow-md dark:border-sand-800 dark:bg-sand-900 dark:hover:border-republic-700">
+                       class="group block rounded-2xl border border-sand-200 bg-white p-6 shadow-sm transition-all hover:-translate-y-0.5 hover:border-republic-300 hover:shadow-md dark:border-sand-800 dark:bg-sand-900 dark:hover:border-republic-700">
                         <div class="flex items-start justify-between gap-3">
                             <h2 class="font-serif text-xl font-bold text-sand-900 group-hover:text-republic-700 dark:text-sand-100 dark:group-hover:text-republic-400">
                                 {{ __('ui.budget.name', ['year' => $item['budget']->year]) }}
@@ -37,6 +37,12 @@
                                 <x-budget-outcome-stat compact :outcome="$key" :label="__('ui.budget.overview.' . $key)" :value="$item['overview'][$key]" />
                             @endforeach
                         </dl>
+                        <p class="mt-4 flex items-center justify-between border-t border-sand-100 pt-4 text-sm font-semibold text-republic-700 dark:border-sand-800 dark:text-republic-400">
+                            {{ __('ui.budget.open_budget') }}
+                            <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" class="size-5 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                            </svg>
+                        </p>
                     </a>
                 @endforeach
             </div>

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\BudgetArticle;
 use App\Models\BudgetProposal;
 use App\Models\BudgetVotePosition;
 use Illuminate\Database\Eloquent\Builder;
@@ -18,25 +19,29 @@ class BudgetMatrixService
      * the party did not vote them all the same way; missing when it did not vote, as single-deputy
      * groups outside the committee.
      *
-     * @param  Builder<BudgetProposal>  $proposals
-     * @return array<int, array<string, string>> by amendment id, then by party acronym
+     * Works for the articles of the Government's bill too, given a query of them.
+     *
+     * @param  Builder<BudgetProposal>|Builder<BudgetArticle>  $proposals
+     * @return array<int, array<string, string>> by amendment (or article) id, then by party acronym
      */
     public function cells(Builder $proposals): array
     {
+        $key = $proposals->getModel() instanceof BudgetArticle ? 'budget_article_id' : 'budget_proposal_id';
+
         $rows = BudgetVotePosition::query()
             ->join('budget_votes', 'budget_votes.id', '=', 'budget_vote_positions.budget_vote_id')
             ->where('budget_votes.is_final', true)
             ->whereNull('budget_vote_positions.deputy')
             ->whereNotNull('budget_vote_positions.party')
-            ->whereIn('budget_votes.budget_proposal_id', (clone $proposals)->reorder()->select('budget_proposals.id'))
+            ->whereIn("budget_votes.{$key}", (clone $proposals)->reorder()->select($proposals->getModel()->getQualifiedKeyName()))
             ->toBase()
-            ->get(['budget_votes.budget_proposal_id', 'budget_vote_positions.party', 'budget_vote_positions.position']);
+            ->get(["budget_votes.{$key} as owner_id", 'budget_vote_positions.party', 'budget_vote_positions.position']);
 
         $cells = [];
 
         foreach ($rows as $row) {
-            $current = $cells[$row->budget_proposal_id][$row->party] ?? null;
-            $cells[$row->budget_proposal_id][$row->party] = $current === null || $current === $row->position ? $row->position : self::SPLIT;
+            $current = $cells[$row->owner_id][$row->party] ?? null;
+            $cells[$row->owner_id][$row->party] = $current === null || $current === $row->position ? $row->position : self::SPLIT;
         }
 
         return $cells;

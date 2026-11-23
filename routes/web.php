@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\BudgetArticleController;
 use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\BudgetProposalController;
 use App\Http\Controllers\DashboardController;
@@ -15,6 +16,8 @@ $legislatureRoutes = function (): void {
     Route::get('/orcamento', [BudgetController::class, 'index'])->name('budgets.index');
     Route::get('/orcamento/{year}', [BudgetController::class, 'show'])->name('budgets.show')->whereNumber('year');
     Route::get('/orcamento/{year}/propostas', [BudgetProposalController::class, 'index'])->name('budgets.proposals.index')->whereNumber('year');
+    Route::get('/orcamento/{year}/artigos', [BudgetArticleController::class, 'index'])->name('budgets.articles.index')->whereNumber('year');
+    Route::get('/orcamento/{year}/artigos/{article}', [BudgetArticleController::class, 'show'])->name('budgets.articles.show')->whereNumber('year')->where('article', '[A-Za-z0-9-]+');
     Route::get('/orcamento/{year}/assuntos/{topic}', [BudgetProposalController::class, 'index'])->name('budgets.topics.show')->whereNumber('year')->where('topic', '[a-z0-9-]+');
     Route::get('/orcamento/{year}/propostas/{proposal}', [BudgetProposalController::class, 'show'])->name('budgets.proposals.show')->whereNumber('year')->where('proposal', '[A-Za-z0-9-]+');
     Route::get('/partidos', [PartyController::class, 'index'])->name('parties.index');

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Budget;
+use App\Models\BudgetArticle;
 use App\Models\BudgetProposal;
 use App\Models\BudgetTopic;
 use App\Services\LegislatureContext;
@@ -31,7 +32,16 @@ class SitemapController
         $budgetRoutes = $budgets->flatMap(fn (Budget $budget): array => [
             route('budgets.show', $budget->year),
             route('budgets.proposals.index', $budget->year),
+            route('budgets.articles.index', $budget->year),
         ]);
+
+        $articleRoutes = BudgetArticle::query()
+            ->whereIn('budget_id', $budgets->pluck('id'))
+            ->with('budget:id,year')
+            ->orderBy('budget_id')
+            ->orderBy('position')
+            ->get(['id', 'budget_id', 'slug'])
+            ->map(fn (BudgetArticle $article): string => route('budgets.articles.show', ['year' => $article->budget->year, 'article' => $article->slug]));
 
         $proposalRoutes = BudgetProposal::query()
             ->whereIn('budget_id', $budgets->pluck('id'))
@@ -48,7 +58,7 @@ class SitemapController
             ->get(['id', 'budget_id', 'slug'])
             ->map(fn (BudgetTopic $topic): string => route('budgets.topics.show', ['year' => $topic->budget->year, 'topic' => $topic->slug]));
 
-        $urls = collect($staticRoutes)->merge($partyRoutes)->merge($budgetRoutes)->merge($topicRoutes)->merge($proposalRoutes);
+        $urls = collect($staticRoutes)->merge($partyRoutes)->merge($budgetRoutes)->merge($topicRoutes)->merge($articleRoutes)->merge($proposalRoutes);
 
         $xml = '<?xml version="1.0" encoding="UTF-8"?>'."\n";
         $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'."\n";

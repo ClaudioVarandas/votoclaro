@@ -47,6 +47,9 @@
                             <th scope="col" class="py-3 pr-2 pl-5 sm:px-6">{{ __('ui.budget.party') }}</th>
                             <th scope="col" class="px-2 py-3 text-right sm:px-4">{{ __('ui.budget.proposed') }}</th>
                             <th scope="col" class="px-2 py-3 sm:w-1/4 sm:px-4">{{ __('ui.budget.approved') }}</th>
+                            @if ($articles['voted'] > 0)
+                                <th scope="col" class="hidden px-4 py-3 md:table-cell md:w-1/5">{{ __('ui.budget.articles.party_column') }}</th>
+                            @endif
                             <th scope="col" class="py-3 pr-5 pl-2 sm:w-1/3 sm:px-6"><span class="sm:hidden">{{ __('ui.budget.against_others_short') }}</span><span class="hidden sm:inline">{{ __('ui.budget.against_others') }}</span></th>
                         </tr>
                     </thead>
@@ -73,6 +76,18 @@
                                         <span class="text-sand-400 dark:text-sand-600">—</span>
                                     @endif
                                 </td>
+                                @if ($articles['voted'] > 0)
+                                    <td class="hidden px-4 py-3 md:table-cell">
+                                        @if ($party['articles_voted'] > 0)
+                                            <div class="flex items-baseline justify-between gap-2">
+                                                <span class="font-semibold tabular-nums text-indigo-700 dark:text-indigo-400">{{ __('ui.budget.articles.favor_rate', ['percent' => number_format($party['articles_favor_rate'], 0, ',', '.')]) }}</span>
+                                            </div>
+                                            <x-position-share-bar :counts="$party['articles']" class="mt-1.5" title="{{ __('ui.budget.articles.share_title', ['favor' => $party['articles']['favor'], 'contra' => $party['articles']['contra'], 'abstencao' => $party['articles']['abstencao']]) }}" />
+                                        @else
+                                            <span class="text-sand-400 dark:text-sand-600">—</span>
+                                        @endif
+                                    </td>
+                                @endif
                                 <td class="py-3 pr-5 pl-2 sm:px-6">
                                     @if ($party['others_voted'] > 0)
                                         <div class="flex items-baseline justify-between gap-2">
@@ -90,6 +105,44 @@
                 </table>
             </div>
         </x-budget-section>
+
+        {{-- The Government's bill --}}
+        @if ($articles['total'] > 0)
+            <x-budget-section id="articles-title" :title="__('ui.budget.articles.section_title')" :intro="__('ui.budget.articles.section_intro')" icon="building-library" accent="indigo">
+                <div class="space-y-6">
+                    <dl class="grid grid-cols-2 gap-3 lg:grid-cols-4">
+                        @foreach (['total' => 'proposals', 'approved' => 'approved', 'pending' => 'pending'] as $key => $outcome)
+                            <x-budget-outcome-stat compact :outcome="$outcome" :label="__('ui.budget.articles.stat_' . $key)" :value="$articles[$key]" />
+                        @endforeach
+                        <x-budget-outcome-stat compact outcome="proposals" :label="__('ui.budget.articles.stat_voted')" :value="$articles['voted']" />
+                    </dl>
+
+                    @if ($articles['most_amended']->isNotEmpty())
+                        <div>
+                            <h3 class="text-sm font-semibold text-sand-900 dark:text-sand-100">{{ __('ui.budget.articles.most_amended') }}</h3>
+                            <ol class="mt-2 grid grid-cols-1 gap-x-8 gap-y-1 md:grid-cols-2">
+                                @foreach ($articles['most_amended'] as $article)
+                                    <li>
+                                        <a href="{{ $legislatureContext->route('budgets.articles.show', ['year' => $budget->year, 'article' => $article->slug]) }}" class="group flex items-center gap-3 rounded-xl px-2 py-2 transition-colors hover:bg-sand-50 dark:hover:bg-sand-950">
+                                            <span class="w-24 shrink-0 text-xs font-semibold text-indigo-700 dark:text-indigo-400">{{ $article->number }}</span>
+                                            <span class="min-w-0 flex-1">
+                                                <span class="flex items-baseline justify-between gap-3">
+                                                    <span class="truncate text-sm font-medium text-sand-800 group-hover:text-indigo-700 dark:text-sand-200 dark:group-hover:text-indigo-400">{{ $article->title ?? $article->number }}</span>
+                                                    <span class="shrink-0 text-sm font-semibold tabular-nums text-sand-900 dark:text-sand-100">{{ $article->proposals_count }}</span>
+                                                </span>
+                                                <x-progress-bar :share="$article->proposals_count / $articles['most_amended']->max('proposals_count')" color="indigo" class="mt-1.5" />
+                                            </span>
+                                        </a>
+                                    </li>
+                                @endforeach
+                            </ol>
+                        </div>
+                    @endif
+
+                    <a href="{{ $legislatureContext->route('budgets.articles.index', ['year' => $budget->year]) }}" class="inline-flex items-center gap-1 text-sm font-semibold text-indigo-700 hover:underline dark:text-indigo-400">{{ __('ui.budget.articles.see_all') }} <span aria-hidden="true">→</span></a>
+                </div>
+            </x-budget-section>
+        @endif
 
         {{-- Topics --}}
         @if ($topics['proposals']->isNotEmpty())
