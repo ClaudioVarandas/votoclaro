@@ -24,6 +24,17 @@ hooks:
     - name: optimize
       run: [php, artisan, optimize]
       timeout_seconds: 120
+  after_activate:
+    # The application cache lives in the database and survives deploys and rollbacks:
+    # clear it once the new release serves requests, so no old-format entry is read.
+    - name: cache-clear
+      run: [php, artisan, cache:clear]
+      timeout_seconds: 60
+    # Restarts queue workers and the scheduler (queue:restart, schedule:interrupt).
+    # After cache-clear, because the queue:restart signal is stored in the cache.
+    - name: reload
+      run: [php, artisan, reload]
+      timeout_seconds: 60
 
 reload:
   # Required: production runs with opcache.validate_timestamps=0. votoclaro has its own
