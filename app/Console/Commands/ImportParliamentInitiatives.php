@@ -18,6 +18,7 @@ class ImportParliamentInitiatives extends Command
 
     public function handle(LegislatureContext $legislatureContext, ParliamentInitiativeSyncService $syncService): int
     {
+        $this->announceImport();
         $sigla = $this->option('legislature');
         $legislature = $legislatureContext->resolve($sigla);
 
@@ -39,6 +40,7 @@ class ImportParliamentInitiatives extends Command
             $this->info("Sync completed: {$imported} initiatives imported.");
         } catch (\Throwable $e) {
             $this->abortImportProgress();
+            report($e);
             $this->error($e->getMessage());
 
             return self::FAILURE;

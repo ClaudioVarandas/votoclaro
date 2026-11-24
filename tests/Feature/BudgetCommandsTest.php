@@ -13,7 +13,9 @@ use App\Models\Initiative;
 use App\Models\Legislature;
 use Closure;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Exceptions;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Sleep;
 use Illuminate\Testing\PendingCommand;
 use Tests\TestCase;
 
@@ -302,13 +304,45 @@ class BudgetCommandsTest extends TestCase
 
     public function test_import_fails_and_removes_the_download_when_the_source_is_unavailable(): void
     {
+        Sleep::fake();
+        Exceptions::fake();
         Budget::factory()->create();
         Http::fake([self::PROPOSALS_URL => Http::response('Service Unavailable', 503)]);
         $downloadsBefore = glob(sys_get_temp_dir().'/ar-download-*');
 
-        $this->artisan('ar:budget:import')->assertFailed();
+        $this->artisan('ar:budget:import')
+            ->expectsOutputToContain('(HTTP 503)')
+            ->assertFailed();
 
         $this->assertSame($downloadsBefore, glob(sys_get_temp_dir().'/ar-download-*'));
+        Http::assertSentCount(3);
+        Exceptions::assertReported(fn (\Exception $e): bool => str_contains($e->getMessage(), 'HTTP 503'));
+    }
+
+    public function test_import_tries_the_download_again_when_the_parliament_fails_for_a_moment(): void
+    {
+        Sleep::fake();
+        Budget::factory()->create(['party_order' => null]);
+        Http::fake([self::PROPOSALS_URL => Http::sequence()
+            ->push('Bad Gateway', 502)
+            ->push('Service Unavailable', 503)
+            ->push($this->fixture())]);
+
+        $this->artisan('ar:budget:import')->assertSuccessful();
+
+        $this->assertSame(11, BudgetProposal::query()->count());
+        Http::assertSentCount(3);
+        Sleep::assertSleptTimes(2);
+        Sleep::assertSlept(fn ($duration): bool => $duration->totalSeconds == 30, 2);
+    }
+
+    public function test_import_starts_its_output_with_the_time_it_ran(): void
+    {
+        $this->travelTo('2026-11-24 14:30:00');
+
+        $this->importFixture()
+            ->expectsOutputToContain('[2026-11-24 14:30:00] ar:budget:import')
+            ->assertSuccessful();
     }
 
     private function importFixture(): PendingCommand

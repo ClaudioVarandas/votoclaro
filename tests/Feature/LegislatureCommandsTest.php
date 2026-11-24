@@ -7,7 +7,9 @@ use App\Models\Legislature;
 use App\Models\Party;
 use App\Services\ParliamentInitiativeSyncService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Exceptions;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Sleep;
 use Tests\TestCase;
 
 class LegislatureCommandsTest extends TestCase
@@ -272,10 +274,15 @@ class LegislatureCommandsTest extends TestCase
 
     public function test_initiatives_import_fails_when_the_source_is_unavailable(): void
     {
+        Sleep::fake();
+        Exceptions::fake();
         Legislature::factory()->xvii()->create(['initiatives_url' => self::INITIATIVES_URL]);
         Http::fake([self::INITIATIVES_URL => Http::response('', 500)]);
 
         $this->artisan('ar:initiatives:import')->assertFailed();
+
+        Http::assertSentCount(3);
+        Exceptions::assertReported(fn (\Exception $e): bool => str_contains($e->getMessage(), 'HTTP 500'));
     }
 
     /**

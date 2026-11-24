@@ -26,6 +26,7 @@ class ImportBudgetProposals extends Command
         BudgetArticleSyncService $articleSyncService,
         BudgetTopicService $topicService,
     ): int {
+        $this->announceImport();
         $budgets = $this->budgets($legislatureContext);
 
         if ($budgets->isEmpty()) {
@@ -54,6 +55,7 @@ class ImportBudgetProposals extends Command
                 }
             } catch (\Throwable $e) {
                 $this->abortImportProgress();
+                report($e);
                 $this->error($e->getMessage());
                 $failed = true;
             }
