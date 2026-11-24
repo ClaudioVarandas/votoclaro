@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Budget;
+use App\Services\BudgetComparisonService;
 use App\Services\BudgetResolver;
 use App\Services\BudgetStatsService;
 use App\Services\LegislatureContext;
@@ -28,7 +29,7 @@ class BudgetController extends Controller
         ]);
     }
 
-    public function show(Request $request, BudgetResolver $resolver): View
+    public function show(Request $request, BudgetResolver $resolver, BudgetComparisonService $comparison): View
     {
         $budget = $resolver->budget($request->route('year'), 'budgets.show');
         $budget->load('initiative');
@@ -39,6 +40,7 @@ class BudgetController extends Controller
             'government' => $this->budgetStats->governmentOf($budget),
             'parties' => $this->budgetStats->parties($budget),
             'agreement' => $this->budgetStats->agreement($budget),
+            'comparison' => $comparison->compare($budget),
             'themes' => $this->budgetStats->themes($budget),
             'topics' => $this->budgetStats->topics($budget),
             'articles' => $this->budgetStats->articles($budget),

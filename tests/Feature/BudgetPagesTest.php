@@ -509,6 +509,105 @@ class BudgetPagesTest extends TestCase
         $this->proposal('A3C', positions: ['PSD' => 'favor', 'CDS-PP' => 'favor', 'PS' => 'abstencao', 'CH' => 'abstencao']);
     }
 
+    public function test_the_budget_page_compares_the_totals_and_parties_with_the_year_before(): void
+    {
+        $this->previousYearProposals();
+        $this->proposal('1C', ['PS'], BudgetProposalStatus::Approved, ['PS' => 'favor']);
+        $this->proposal('2C', ['CH'], BudgetProposalStatus::Rejected, ['PS' => 'contra']);
+        $this->proposal('3C', ['CH'], BudgetProposalStatus::Approved, ['PS' => 'favor']);
+
+        $this->get(route('budgets.show', 2027))
+            ->assertOk()
+            ->assertSee(__('ui.budget.comparison.title', ['year' => 2026]))
+            ->assertViewHas('comparison', function (?array $comparison): bool {
+                $totals = collect($comparison['totals'])->keyBy('key');
+                $parties = collect($comparison['parties'])->keyBy('acronym');
+
+                return $comparison['previous']->year === 2026
+                    && $totals['total']['current'] === 3 && $totals['total']['previous'] === 2
+                    && $totals['approved']['current'] === 2 && $totals['approved']['previous'] === 1
+                    && $totals['approval_rate']['current'] === 66.7 && $totals['approval_rate']['previous'] === 50.0
+                    && ! $totals->has('against_government')
+                    && $parties->keys()->all() === ['CH', 'PS', 'BE']
+                    && $parties['CH']['previous'] === null
+                    && $parties['BE']['current'] === null
+                    && $parties['PS']['current']['proposed'] === 1 && $parties['PS']['previous']['proposed'] === 1;
+            })
+            ->assertDontSee(__('ui.budget.comparison.other_legislature', ['year' => 2026, 'legislature' => 'XVII']));
+    }
+
+    public function test_the_comparison_counts_against_the_government_only_when_both_years_have_it(): void
+    {
+        $this->markGovernment(['PSD', 'CDS-PP']);
+        $this->previousYearProposals();
+        $this->againstGovernmentProposals();
+
+        $this->get(route('budgets.show', 2027))
+            ->assertViewHas('comparison', fn (array $comparison): bool => collect($comparison['totals'])->firstWhere('key', 'against_government') === ['key' => 'against_government', 'current' => 2, 'previous' => 0]);
+    }
+
+    public function test_the_comparison_lines_up_the_amendments_approved_by_each_voting_day(): void
+    {
+        $previous = $this->previousYearProposals();
+
+        foreach (range(1, 12) as $number) {
+            $proposal = $this->proposal("{$number}C", status: $number <= 3 ? BudgetProposalStatus::Approved : BudgetProposalStatus::Rejected);
+            $this->vote($proposal, 1, BudgetVoteStage::Committee, ['PS' => 'favor'], date: '2026-11-18');
+        }
+
+        $lone = $this->proposal('13C', status: BudgetProposalStatus::Approved);
+        $this->vote($lone, 1, BudgetVoteStage::Plenary, ['PS' => 'favor'], date: '2026-11-19');
+
+        $this->get(route('budgets.show', 2027))
+            ->assertViewHas('comparison', fn (array $comparison): bool => $comparison['pace'] === [
+                ['current' => ['decided' => 13, 'approved' => 4], 'previous' => ['decided' => 2, 'approved' => 1]],
+            ])
+            ->assertSee(trans_choice('ui.budget.comparison.pace_summary', 1, ['days' => 1, 'current' => 4, 'previous' => 1, 'year' => 2026]));
+
+        $this->assertSame(2026, $previous->year);
+    }
+
+    public function test_a_budget_compared_with_another_legislature_says_so(): void
+    {
+        $budget2026 = Budget::factory()->create(['legislature_id' => $this->current->id, 'year' => 2026]);
+        $budget2025 = Budget::factory()->create(['legislature_id' => $this->previous->id, 'year' => 2025]);
+        BudgetProposal::factory()->create(['budget_id' => $budget2025->id, 'number' => '1C', 'slug' => '1c', 'status' => BudgetProposalStatus::Rejected]);
+        BudgetProposal::factory()->create(['budget_id' => $budget2026->id, 'number' => '1C', 'slug' => '1c', 'status' => BudgetProposalStatus::Rejected]);
+
+        $this->get(route('budgets.show', 2026))
+            ->assertOk()
+            ->assertSee(__('ui.budget.comparison.other_legislature', ['year' => 2025, 'legislature' => 'XVI']));
+    }
+
+    public function test_without_a_budget_the_year_before_there_is_no_comparison(): void
+    {
+        $this->proposal('1C');
+        Budget::factory()->create(['legislature_id' => $this->current->id, 'year' => 2026]);
+
+        $this->get(route('budgets.show', 2027))
+            ->assertOk()
+            ->assertViewHas('comparison', null)
+            ->assertDontSee(__('ui.budget.comparison.title', ['year' => 2026]));
+    }
+
+    /**
+     * The 2026 budget in the same legislature: one PS amendment approved, one BE rejected, both
+     * decided on a single day.
+     */
+    private function previousYearProposals(): Budget
+    {
+        $previous = Budget::factory()->create(['legislature_id' => $this->current->id, 'year' => 2026]);
+        $budget = $this->budget;
+        $this->budget = $previous;
+
+        $this->proposal('1C', ['PS'], BudgetProposalStatus::Approved, ['PS' => 'favor']);
+        $this->proposal('2C', ['BE'], BudgetProposalStatus::Rejected, ['PS' => 'contra']);
+
+        $this->budget = $budget;
+
+        return $previous;
+    }
+
     /**
      * @param  list<string>  $acronyms
      */
