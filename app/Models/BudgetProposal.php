@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\BudgetProposalStatus;
+use App\Enums\BudgetVotePosition;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -98,6 +99,30 @@ class BudgetProposal extends Model
     public function finalVotes(): HasMany
     {
         return $this->hasMany(BudgetVote::class)->where('is_final', true)->orderBy('sequence');
+    }
+
+    /**
+     * Passed against the government: a vote that decided it approved it, or part of it, while
+     * every government party voted against. A government split between itself does not count.
+     *
+     * @param  list<string>  $governmentAcronyms
+     */
+    public function scopeApprovedAgainstGovernment(Builder $query, array $governmentAcronyms): void
+    {
+        if ($governmentAcronyms === []) {
+            $query->whereRaw('1 = 0');
+
+            return;
+        }
+
+        $approved = [BudgetProposalStatus::Approved, BudgetProposalStatus::PartiallyApproved];
+
+        $query->whereIn('status', $approved)->whereHas('finalVotes', fn (Builder $votes) => $votes
+            ->whereIn('result', $approved)
+            ->whereHas('positions', fn (Builder $positions) => $positions
+                ->whereNull('deputy')
+                ->whereIn('party', $governmentAcronyms)
+                ->where('position', BudgetVotePosition::Contra), '=', count($governmentAcronyms)));
     }
 
     /**

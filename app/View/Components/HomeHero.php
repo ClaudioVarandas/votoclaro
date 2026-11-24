@@ -20,7 +20,7 @@ use Illuminate\View\Component;
 class HomeHero extends Component
 {
     /**
-     * @param  array{budget: Budget, stage: string, final_vote: ?array{approved: bool, date: ?\Illuminate\Support\Carbon}, overview: array<string, int>, topics: iterable<BudgetTopic>, sample: array{parties: list<string>, rows: list<list<?string>>}}|null  $highlight
+     * @param  array{budget: Budget, stage: string, final_vote: ?array{approved: bool, date: ?\Illuminate\Support\Carbon}, overview: array<string, ?int>, government?: list<string>, topics: iterable<BudgetTopic>, sample: array{parties: list<string>, rows: list<list<?string>>}}|null  $highlight
      */
     public function __construct(private LegislatureContext $legislatureContext, public ?array $highlight = null) {}
 
@@ -126,6 +126,29 @@ class HomeHero extends Component
     public function matrixUrl(): string
     {
         return $this->legislatureContext->route('budgets.proposals.index', ['year' => $this->highlight['budget']->year], $this->highlight['budget']->legislature);
+    }
+
+    /**
+     * How many amendments passed against the vote of every government party, once any vote is in
+     * and the legislature has its government recorded.
+     */
+    public function againstGovernment(): ?string
+    {
+        $count = $this->highlight['overview']['against_government'] ?? null;
+
+        if ($this->isSubmitted() || ! $count) {
+            return null;
+        }
+
+        return trans_choice('ui.home.against_government', $count, [
+            'count' => $this->figure($count),
+            'parties' => implode(', ', $this->highlight['government'] ?? []),
+        ]);
+    }
+
+    public function againstGovernmentUrl(): string
+    {
+        return $this->legislatureContext->route('budgets.proposals.index', ['year' => $this->highlight['budget']->year, 'contra_governo' => 1], $this->highlight['budget']->legislature);
     }
 
     public function topicUrl(BudgetTopic $topic): string

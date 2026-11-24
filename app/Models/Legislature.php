@@ -45,7 +45,20 @@ class Legislature extends Model
 
     public function parties(): BelongsToMany
     {
-        return $this->belongsToMany(Party::class)->withTimestamps();
+        return $this->belongsToMany(Party::class)->withPivot('is_government')->withTimestamps();
+    }
+
+    public function governmentParties(): BelongsToMany
+    {
+        return $this->parties()->wherePivot('is_government', true);
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function governmentAcronyms(): array
+    {
+        return $this->governmentParties()->orderBy('acronym')->pluck('acronym')->all();
     }
 
     public function isClosed(): bool

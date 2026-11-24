@@ -281,6 +281,30 @@ class DashboardTest extends TestCase
         $this->assertFalse(app()->make(HomeHero::class, ['highlight' => null])->hasBudget());
         $this->assertTrue($hero->isVoting());
         $this->assertSame(['approved', 'rejected', 'pending'], array_keys($hero->figures()));
+        $this->assertNull($hero->againstGovernment());
+    }
+
+    public function test_the_hero_component_names_the_government_it_passed_against(): void
+    {
+        $budget = Budget::factory()->create(['year' => 2027])->fresh('legislature');
+        $highlight = [
+            'budget' => $budget,
+            'stage' => BudgetStatsService::STAGE_VOTING,
+            'final_vote' => null,
+            'overview' => ['total' => 2919, 'approved' => 365, 'rejected' => 2394, 'pending' => 78, 'voted' => 2759, 'against_government' => 1215],
+            'government' => ['CDS-PP', 'PSD'],
+            'topics' => collect(),
+            'sample' => ['parties' => [], 'rows' => []],
+        ];
+
+        $hero = app()->make(HomeHero::class, ['highlight' => $highlight]);
+        $submitted = app()->make(HomeHero::class, ['highlight' => ['stage' => BudgetStatsService::STAGE_SUBMITTED] + $highlight]);
+        $none = app()->make(HomeHero::class, ['highlight' => ['overview' => ['against_government' => 0] + $highlight['overview']] + $highlight]);
+
+        $this->assertSame('1.215 aprovadas contra o voto do Governo (CDS-PP, PSD)', $hero->againstGovernment());
+        $this->assertStringContainsString('contra_governo=1', $hero->againstGovernmentUrl());
+        $this->assertNull($submitted->againstGovernment());
+        $this->assertNull($none->againstGovernment());
     }
 
     /**

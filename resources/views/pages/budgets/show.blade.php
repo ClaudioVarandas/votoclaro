@@ -36,6 +36,19 @@
             @if ($overview['pending'] > 0)
                 <p class="text-sm text-sand-500 dark:text-sand-400">{{ __('ui.budget.voting_progress', ['voted' => number_format($overview['voted'], 0, ',', '.'), 'total' => number_format($overview['total'], 0, ',', '.')]) }}</p>
             @endif
+            @if ($overview['against_government'])
+                <a href="{{ $legislatureContext->route('budgets.proposals.index', ['year' => $budget->year, 'contra_governo' => 1], $budget->legislature) }}" class="group flex flex-col gap-3 rounded-2xl border border-indigo-200 bg-indigo-50 p-5 transition-colors hover:border-indigo-300 sm:flex-row sm:items-center dark:border-indigo-900 dark:bg-indigo-950/60 dark:hover:border-indigo-700">
+                    <span class="font-serif text-3xl font-bold tabular-nums text-indigo-800 dark:text-indigo-300">{{ number_format($overview['against_government'], 0, ',', '.') }}</span>
+                    <span class="flex-1">
+                        <span class="block font-semibold text-indigo-900 dark:text-indigo-200">{{ __('ui.budget.against_government.label') }}</span>
+                        <span class="block text-sm text-indigo-800/80 dark:text-indigo-300/80">{{ __('ui.budget.against_government.explain', ['parties' => implode(', ', $government)]) }}</span>
+                    </span>
+                    <span class="inline-flex items-center gap-1 text-sm font-semibold text-indigo-700 dark:text-indigo-300">
+                        {{ __('ui.budget.against_government.see') }}
+                        <span aria-hidden="true" class="transition-transform group-hover:translate-x-0.5">→</span>
+                    </span>
+                </a>
+            @endif
         </section>
 
         {{-- Parties --}}
@@ -72,6 +85,9 @@
                                             <span class="hidden text-xs tabular-nums text-sand-500 sm:inline dark:text-sand-400">{{ __('ui.budget.of_count', ['part' => number_format($party['approved'], 0, ',', '.'), 'total' => number_format($party['proposed'], 0, ',', '.')]) }}</span>
                                         </div>
                                         <x-progress-bar :share="$party['approval_rate'] / 100" class="mt-1.5" />
+                                        @if ($party['approved_against_government'] > 0)
+                                            <a href="{{ $legislatureContext->route('budgets.proposals.index', ['year' => $budget->year, 'partido' => strtolower($party['acronym']), 'contra_governo' => 1], $budget->legislature) }}" class="mt-1 inline-block text-xs font-medium text-indigo-700 hover:underline dark:text-indigo-300">{{ trans_choice('ui.budget.against_government.party_count', $party['approved_against_government'], ['count' => number_format($party['approved_against_government'], 0, ',', '.')]) }}</a>
+                                        @endif
                                     @else
                                         <span class="text-sand-400 dark:text-sand-600">—</span>
                                     @endif

@@ -64,6 +64,64 @@ class LegislatureCommandsTest extends TestCase
         $this->assertDatabaseCount('legislatures', 0);
     }
 
+    public function test_register_marks_the_parties_in_government(): void
+    {
+        $legislature = Legislature::factory()->xvii()->withParties()->create(['base_info_url' => null]);
+
+        $this->artisan('ar:legislature:register', ['sigla' => 'XVII', '--government' => 'psd, CDS-PP'])
+            ->expectsOutputToContain('Government of the XVII legislature: PSD, CDS-PP.')
+            ->assertSuccessful();
+
+        $this->assertSame(['CDS-PP', 'PSD'], $legislature->governmentAcronyms());
+    }
+
+    public function test_register_replaces_the_government_and_keeps_the_other_parties(): void
+    {
+        $legislature = Legislature::factory()->xvii()->withParties()->create(['base_info_url' => null]);
+        $this->artisan('ar:legislature:register', ['sigla' => 'XVII', '--government' => 'PSD,CDS-PP'])->assertSuccessful();
+
+        $this->artisan('ar:legislature:register', ['sigla' => 'XVII', '--government' => 'PS'])->assertSuccessful();
+
+        $this->assertSame(['PS'], $legislature->governmentAcronyms());
+        $this->assertCount(10, $legislature->parties()->get());
+    }
+
+    public function test_register_attaches_a_government_party_the_legislature_did_not_have(): void
+    {
+        $legislature = Legislature::factory()->xvii()->withParties(['PS'])->create(['base_info_url' => null]);
+        Party::factory()->create(['acronym' => 'PSD']);
+
+        $this->artisan('ar:legislature:register', ['sigla' => 'XVII', '--government' => 'PSD'])->assertSuccessful();
+
+        $this->assertSame(['PSD'], $legislature->governmentAcronyms());
+    }
+
+    public function test_register_refuses_an_unknown_government_party_and_changes_nothing(): void
+    {
+        $legislature = Legislature::factory()->xvii()->withParties()->create(['base_info_url' => null]);
+        $this->artisan('ar:legislature:register', ['sigla' => 'XVII', '--government' => 'PSD'])->assertSuccessful();
+
+        $this->artisan('ar:legislature:register', ['sigla' => 'XVII', '--government' => 'PS,NOPE'])
+            ->expectsOutputToContain('Unknown party: NOPE.')
+            ->assertFailed();
+
+        $this->artisan('ar:legislature:register', ['sigla' => 'XVII', '--government' => ' , '])
+            ->expectsOutputToContain('Name at least one party in --government.')
+            ->assertFailed();
+
+        $this->assertSame(['PSD'], $legislature->governmentAcronyms());
+    }
+
+    public function test_base_info_import_keeps_the_government(): void
+    {
+        Http::fake([self::BASE_INFO_URL => Http::response($this->baseInfo('XVIII', '2029-04-01', null, ['PS' => 'Partido Socialista', 'NOVO' => 'Partido Novo']))]);
+
+        $this->artisan('ar:legislature:register', ['sigla' => 'XVIII', '--base-info-url' => self::BASE_INFO_URL, '--government' => 'NOVO'])->assertSuccessful();
+        $this->artisan('ar:base_info:import', ['--legislature' => 'XVIII'])->assertSuccessful();
+
+        $this->assertSame(['NOVO'], Legislature::query()->where('sigla', 'XVIII')->firstOrFail()->governmentAcronyms());
+    }
+
     public function test_base_info_import_closes_the_legislature_and_keeps_its_earlier_parties(): void
     {
         $legislature = Legislature::factory()->xvii()->withParties(['PS', 'GONE'])->create(['base_info_url' => self::BASE_INFO_URL]);

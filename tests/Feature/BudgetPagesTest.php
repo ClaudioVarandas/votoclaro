@@ -75,7 +75,7 @@ class BudgetPagesTest extends TestCase
 
         $this->get(route('budgets.show', 2027))
             ->assertOk()
-            ->assertViewHas('overview', ['total' => 4, 'approved' => 2, 'rejected' => 1, 'pending' => 1, 'voted' => 3])
+            ->assertViewHas('overview', ['total' => 4, 'approved' => 2, 'rejected' => 1, 'pending' => 1, 'voted' => 3, 'against_government' => null])
             ->assertViewHas('parties', function (array $parties): bool {
                 $byParty = collect($parties)->keyBy('acronym');
 
@@ -343,10 +343,109 @@ class BudgetPagesTest extends TestCase
         }
 
         if ($positions !== []) {
-            $this->vote($proposal, 1, BudgetVoteStage::Committee, $positions);
+            $this->vote($proposal, 1, BudgetVoteStage::Committee, $positions)->update(['result' => $status]);
         }
 
         return $proposal;
+    }
+
+    public function test_the_budget_page_counts_the_amendments_passed_against_the_government(): void
+    {
+        $this->markGovernment(['PSD', 'CDS-PP']);
+        $this->againstGovernmentProposals();
+
+        $this->get(route('budgets.show', 2027))
+            ->assertOk()
+            ->assertViewHas('overview', fn (array $overview): bool => $overview['against_government'] === 2)
+            ->assertViewHas('parties', function (array $parties): bool {
+                $byParty = collect($parties)->keyBy('acronym');
+
+                return $byParty['PS']['approved_against_government'] === 1
+                    && $byParty['CH']['approved_against_government'] === 1
+                    && $byParty['BE']['approved_against_government'] === 0;
+            })
+            ->assertSee(__('ui.budget.against_government.label'))
+            ->assertSee(__('ui.budget.against_government.explain', ['parties' => 'PSD, CDS-PP']))
+            ->assertSee(route('budgets.proposals.index', ['year' => 2027, 'contra_governo' => 1]), false);
+    }
+
+    public function test_without_a_government_on_record_nothing_is_counted_against_it(): void
+    {
+        $this->againstGovernmentProposals();
+
+        $this->get(route('budgets.show', 2027))
+            ->assertOk()
+            ->assertViewHas('overview', fn (array $overview): bool => $overview['against_government'] === null)
+            ->assertDontSee(__('ui.budget.against_government.label'));
+
+        $this->get(route('budgets.proposals.index', ['year' => 2027, 'contra_governo' => 1]))
+            ->assertOk()
+            ->assertDontSee('name="contra_governo"', false)
+            ->assertViewHas('proposals', fn ($proposals): bool => $proposals->total() === 5);
+    }
+
+    public function test_the_matrix_filters_the_amendments_passed_against_the_government(): void
+    {
+        $this->markGovernment(['PSD', 'CDS-PP']);
+        $this->againstGovernmentProposals();
+
+        $this->get(route('budgets.proposals.index', ['year' => 2027, 'contra_governo' => 1]))
+            ->assertOk()
+            ->assertSee('name="contra_governo"', false)
+            ->assertViewHas('proposals', fn ($proposals): bool => $proposals->pluck('number')->sort()->values()->all() === ['1C', '5C']);
+
+        $this->get(route('budgets.proposals.index', ['year' => 2027, 'contra_governo' => 1, 'partido' => 'ps']))
+            ->assertViewHas('proposals', fn ($proposals): bool => $proposals->pluck('number')->all() === ['1C']);
+    }
+
+    public function test_a_single_party_government_counts_on_its_own_vote(): void
+    {
+        $this->markGovernment(['PS']);
+        $this->proposal('1C', ['PSD'], BudgetProposalStatus::Approved, ['PS' => 'contra', 'PSD' => 'favor']);
+        $this->proposal('2C', ['PSD'], BudgetProposalStatus::Approved, ['PS' => 'abstencao', 'PSD' => 'favor']);
+
+        $this->get(route('budgets.show', 2027))
+            ->assertViewHas('overview', fn (array $overview): bool => $overview['against_government'] === 1);
+    }
+
+    public function test_the_home_page_hero_links_to_the_amendments_passed_against_the_government(): void
+    {
+        $this->markGovernment(['PSD', 'CDS-PP']);
+        $this->againstGovernmentProposals();
+        $this->proposal('9C', ['BE'], BudgetProposalStatus::Pending);
+
+        $this->get(route('dashboard'))
+            ->assertOk()
+            ->assertSee(trans_choice('ui.home.against_government', 2, ['count' => 2, 'parties' => 'PSD, CDS-PP']))
+            ->assertSee(route('budgets.proposals.index', ['year' => 2027, 'contra_governo' => 1]), false);
+    }
+
+    /**
+     * @param  list<string>  $acronyms
+     */
+    private function markGovernment(array $acronyms): void
+    {
+        $this->current->parties()->updateExistingPivot(Party::query()->whereIn('acronym', $acronyms)->pluck('id')->all(), ['is_government' => true]);
+    }
+
+    /**
+     * Two amendments passed against the whole government (1C, and 5C in one of its parts); the
+     * others either had a government party on their side, failed, or passed only in a part the
+     * government supported.
+     */
+    private function againstGovernmentProposals(): void
+    {
+        $this->proposal('1C', ['PS'], BudgetProposalStatus::Approved, ['PSD' => 'contra', 'CDS-PP' => 'contra', 'PS' => 'favor', 'CH' => 'favor']);
+        $this->proposal('2C', ['BE'], BudgetProposalStatus::Approved, ['PSD' => 'contra', 'CDS-PP' => 'favor', 'PS' => 'favor']);
+        $this->proposal('3C', ['BE'], BudgetProposalStatus::Rejected, ['PSD' => 'contra', 'CDS-PP' => 'contra', 'PS' => 'favor']);
+
+        $split = $this->proposal('4C', ['BE'], BudgetProposalStatus::PartiallyApproved);
+        $this->vote($split, 1, BudgetVoteStage::Committee, ['PSD' => 'favor', 'CDS-PP' => 'favor'])->update(['result' => BudgetProposalStatus::Approved]);
+        $this->vote($split, 2, BudgetVoteStage::Committee, ['PSD' => 'contra', 'CDS-PP' => 'contra'])->update(['result' => BudgetProposalStatus::Rejected]);
+
+        $passedInPart = $this->proposal('5C', ['CH'], BudgetProposalStatus::PartiallyApproved);
+        $this->vote($passedInPart, 1, BudgetVoteStage::Committee, ['PSD' => 'contra', 'CDS-PP' => 'contra', 'CH' => 'favor', 'PS' => 'favor'])->update(['result' => BudgetProposalStatus::Approved]);
+        $this->vote($passedInPart, 2, BudgetVoteStage::Committee, ['PSD' => 'contra', 'CDS-PP' => 'contra', 'CH' => 'favor'])->update(['result' => BudgetProposalStatus::Rejected]);
     }
 
     /**

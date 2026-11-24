@@ -45,6 +45,13 @@
                     @endforeach
                 </dl>
 
+                @if ($againstGovernment())
+                    <a href="{{ $againstGovernmentUrl() }}" class="group inline-flex items-center gap-2 rounded-xl bg-indigo-50 px-4 py-2 text-sm font-semibold text-indigo-800 ring-1 ring-indigo-200 transition-colors hover:bg-indigo-100 dark:bg-indigo-950 dark:text-indigo-300 dark:ring-indigo-900 dark:hover:bg-indigo-900">
+                        {{ $againstGovernment() }}
+                        <span aria-hidden="true" class="transition-transform group-hover:translate-x-0.5">→</span>
+                    </a>
+                @endif
+
                 @if (collect($highlight['topics'])->isNotEmpty())
                     <div class="flex flex-wrap items-center gap-2">
                         <span class="text-sm text-sand-600 dark:text-sand-400">{{ __('ui.home.topics') }}</span>

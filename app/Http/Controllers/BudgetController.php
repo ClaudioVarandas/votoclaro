@@ -36,6 +36,7 @@ class BudgetController extends Controller
         return view('pages.budgets.show', [
             'budget' => $budget,
             'overview' => $this->budgetStats->overview($budget),
+            'government' => $this->budgetStats->governmentOf($budget),
             'parties' => $this->budgetStats->parties($budget),
             'themes' => $this->budgetStats->themes($budget),
             'topics' => $this->budgetStats->topics($budget),

@@ -14,6 +14,7 @@ use App\Models\BudgetVote;
 use App\Models\BudgetVotePosition as Position;
 use App\Models\Legislature;
 use App\Models\Party;
+use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
@@ -46,7 +47,10 @@ class BudgetStatsService
     public function __construct(private BudgetMatrixService $matrix) {}
 
     /**
-     * @return array{total: int, approved: int, rejected: int, pending: int, voted: int}
+     * The totals of a budget. Against the government is null when its legislature has no
+     * government recorded.
+     *
+     * @return array{total: int, approved: int, rejected: int, pending: int, voted: int, against_government: ?int}
      */
     public function overview(Budget $budget): array
     {
@@ -64,6 +68,9 @@ class BudgetStatsService
                 'rejected' => (int) ($counts[BudgetProposalStatus::Rejected->value] ?? 0),
                 'pending' => (int) ($counts[BudgetProposalStatus::Pending->value] ?? 0),
                 'voted' => BudgetProposal::query()->where('budget_id', $budget->id)->whereHas('finalVotes')->count(),
+                'against_government' => $this->governmentOf($budget) === []
+                    ? null
+                    : $this->againstGovernment($budget)->count(),
             ];
         });
     }
@@ -72,7 +79,7 @@ class BudgetStatsService
      * Per party, in the Parliament's order: the amendments it proposed, how many passed, and how
      * often it voted against the amendments of other parties in the vote that decided them.
      *
-     * @return list<array{acronym: string, proposed: int, approved: int, approval_rate: float, others_voted: int, against_others: int, against_rate: float, articles_voted: int, articles: array{favor: int, contra: int, abstencao: int}, articles_favor_rate: float}>
+     * @return list<array{acronym: string, proposed: int, approved: int, approval_rate: float, approved_against_government: int, others_voted: int, against_others: int, against_rate: float, articles_voted: int, articles: array{favor: int, contra: int, abstencao: int}, articles_favor_rate: float}>
      */
     public function parties(Budget $budget): array
     {
@@ -113,8 +120,18 @@ class BudgetStatsService
 
             $articleSupport = $this->articleSupport($budget);
 
+            $againstGovernment = $this->governmentOf($budget) === []
+                ? collect()
+                : Party::query()
+                    ->join('budget_proposal_party', 'budget_proposal_party.party_id', '=', 'parties.id')
+                    ->whereIn('budget_proposal_party.budget_proposal_id', $this->againstGovernment($budget)->select('budget_proposals.id'))
+                    ->groupBy('parties.acronym')
+                    ->selectRaw('parties.acronym, count(*) as total')
+                    ->toBase()
+                    ->pluck('total', 'acronym');
+
             return $this->partyOrder($budget, $proposed->keys())
-                ->map(function (string $acronym) use ($proposed, $onOthers, $articleSupport): array {
+                ->map(function (string $acronym) use ($proposed, $onOthers, $articleSupport, $againstGovernment): array {
                     $count = (int) ($proposed[$acronym]->proposed ?? 0);
                     $approved = (int) ($proposed[$acronym]->approved ?? 0);
                     $othersVoted = (int) ($onOthers[$acronym]->voted ?? 0);
@@ -125,6 +142,7 @@ class BudgetStatsService
                         'proposed' => $count,
                         'approved' => $approved,
                         'approval_rate' => $count > 0 ? round($approved / $count * 100, 1) : 0.0,
+                        'approved_against_government' => (int) ($againstGovernment[$acronym] ?? 0),
                         'others_voted' => $othersVoted,
                         'against_others' => $againstOthers,
                         'against_rate' => $othersVoted > 0 ? round($againstOthers / $othersVoted * 100, 1) : 0.0,
@@ -156,7 +174,7 @@ class BudgetStatsService
      * the stage it is at, its figures, its first topics, and a sample of its vote grid (the
      * amendments voted last).
      *
-     * @return array{budget: Budget, stage: string, final_vote: ?array{approved: bool, date: ?\Illuminate\Support\Carbon}, overview: array{total: int, approved: int, rejected: int, pending: int, voted: int}, topics: Collection<int, BudgetTopic>, sample: array{parties: list<string>, rows: list<list<?string>>}}|null
+     * @return array{budget: Budget, stage: string, final_vote: ?array{approved: bool, date: ?\Illuminate\Support\Carbon}, overview: array{total: int, approved: int, rejected: int, pending: int, voted: int, against_government: ?int}, government: list<string>, topics: Collection<int, BudgetTopic>, sample: array{parties: list<string>, rows: list<list<?string>>}}|null
      */
     public function highlight(Legislature $legislature): ?array
     {
@@ -175,6 +193,7 @@ class BudgetStatsService
             'stage' => $stages[$budget->id],
             'final_vote' => $finalVote ? ['approved' => $finalVote->result === VoteResult::Aprovado, 'date' => $finalVote->date] : null,
             'overview' => $this->overview($budget),
+            'government' => $this->governmentOf($budget),
             'topics' => $this->topics($budget)['parties']->take(self::HIGHLIGHT_TOPICS)->values(),
             'sample' => Cache::remember("budget.{$budget->id}.highlight_sample", self::CACHE_TTL, fn (): array => $this->voteSample($budget)),
         ];
@@ -332,5 +351,26 @@ class BudgetStatsService
             ->merge($proposingAcronyms ?? [])
             ->unique()
             ->values();
+    }
+
+    /**
+     * The acronyms of the parties in government in the budget's legislature, in the order the
+     * Parliament lists them (the largest first).
+     *
+     * @return list<string>
+     */
+    public function governmentOf(Budget $budget): array
+    {
+        $government = $budget->legislature?->governmentAcronyms() ?? [];
+
+        return $this->partyOrder($budget, collect($government))->intersect($government)->values()->all();
+    }
+
+    /**
+     * @return EloquentBuilder<BudgetProposal>
+     */
+    private function againstGovernment(Budget $budget): EloquentBuilder
+    {
+        return BudgetProposal::query()->where('budget_id', $budget->id)->approvedAgainstGovernment($this->governmentOf($budget));
     }
 }

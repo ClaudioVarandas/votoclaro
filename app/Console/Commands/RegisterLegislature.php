@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\Legislature;
+use App\Models\Party;
 use Illuminate\Console\Command;
 use InvalidArgumentException;
 
@@ -11,9 +12,10 @@ class RegisterLegislature extends Command
     protected $signature = 'ar:legislature:register
         {sigla : Roman numeral of the legislature, e.g. XVIII}
         {--initiatives-url= : URL of the Iniciativas<sigla>_json.txt file on parlamento.pt}
-        {--base-info-url= : URL of the InformacaoBase<sigla>_json.txt file on parlamento.pt}';
+        {--base-info-url= : URL of the InformacaoBase<sigla>_json.txt file on parlamento.pt}
+        {--government= : Acronyms of the parties in government, comma-separated, e.g. PSD,CDS-PP}';
 
-    protected $description = 'Register a legislature, or update its source URLs, then import its base information';
+    protected $description = 'Register a legislature, or update its source URLs or its government, then import its base information';
 
     public function handle(): int
     {
@@ -38,12 +40,50 @@ class RegisterLegislature extends Command
             ? "{$sigla} legislature registered."
             : "{$sigla} legislature updated.");
 
-        if (! $legislature->base_info_url) {
-            $this->warn('No base information URL yet: dates and parties are not imported.');
+        $status = self::SUCCESS;
 
-            return self::SUCCESS;
+        if ($legislature->base_info_url) {
+            $status = $this->call('ar:base_info:import', ['--legislature' => $sigla]);
+        } else {
+            $this->warn('No base information URL yet: dates and parties are not imported.');
         }
 
-        return $this->call('ar:base_info:import', ['--legislature' => $sigla]);
+        if ($this->option('government') !== null && ! $this->markGovernment($legislature, (string) $this->option('government'))) {
+            return self::FAILURE;
+        }
+
+        return $status;
+    }
+
+    /**
+     * Replaces the government of the legislature with the parties named, after the base
+     * information has attached the legislature's parties. Nothing changes when one is unknown.
+     */
+    private function markGovernment(Legislature $legislature, string $acronyms): bool
+    {
+        $named = collect(explode(',', $acronyms))->map(fn (string $acronym): string => strtoupper(trim($acronym)))->filter()->unique()->values();
+        $parties = Party::query()->whereIn('acronym', $named)->pluck('id', 'acronym');
+        $unknown = $named->diff($parties->keys());
+
+        if ($named->isEmpty() || $unknown->isNotEmpty()) {
+            $this->error($named->isEmpty() ? 'Name at least one party in --government.' : 'Unknown party: '.$unknown->implode(', ').'.');
+
+            return false;
+        }
+
+        $governmentIds = $parties->values()->all();
+        $legislature->parties()->syncWithoutDetaching($governmentIds);
+
+        $otherIds = array_diff($legislature->parties()->pluck('parties.id')->all(), $governmentIds);
+
+        if ($otherIds !== []) {
+            $legislature->parties()->updateExistingPivot($otherIds, ['is_government' => false]);
+        }
+
+        $legislature->parties()->updateExistingPivot($governmentIds, ['is_government' => true]);
+
+        $this->info("Government of the {$legislature->sigla} legislature: {$named->implode(', ')}.");
+
+        return true;
     }
 }

@@ -23,6 +23,7 @@ class IndexBudgetProposalsRequest extends FormRequest
             'partido' => ['nullable', 'string', 'max:10'],
             'estado' => ['nullable', Rule::enum(BudgetProposalStatus::class)],
             'q' => ['nullable', 'string', 'max:100'],
+            'contra_governo' => ['nullable', 'boolean'],
             'page' => ['nullable', 'integer', 'min:1'],
         ];
     }

@@ -36,6 +36,8 @@ class BudgetProposalController extends Controller
         $theme = $themes->firstWhere('slug', $request->validated('tema'));
         $party = strtoupper((string) $request->validated('partido')) ?: null;
         $status = BudgetProposalStatus::tryFrom((string) $request->validated('estado'));
+        $government = $this->budgetStats->governmentOf($budget);
+        $againstGovernment = $government !== [] && $request->boolean('contra_governo');
 
         $filtered = BudgetProposal::query()
             ->where('budget_id', $budget->id)
@@ -43,6 +45,7 @@ class BudgetProposalController extends Controller
             ->when($theme, fn ($query) => $query->whereRelation('themes', 'budget_themes.id', $theme->id))
             ->when($party, fn ($query) => $query->whereRelation('parties', 'acronym', $party))
             ->when($status, fn ($query) => $query->where('status', $status))
+            ->when($againstGovernment, fn ($query) => $query->approvedAgainstGovernment($government))
             ->when($request->validated('q'), fn ($query, string $terms) => $query->search($terms));
 
         $proposals = (clone $filtered)
@@ -71,11 +74,13 @@ class BudgetProposalController extends Controller
                 : $this->legislatureContext->route('budgets.proposals.index', ['year' => $budget->year], $budget->legislature),
             'proposingParties' => collect($this->budgetStats->parties($budget))->where('proposed', '>', 0)->pluck('acronym')->all(),
             'statuses' => BudgetProposalStatus::listable($presentStatuses),
+            'government' => $government,
             'filters' => [
                 'tema' => $theme?->slug,
                 'partido' => $party,
                 'estado' => $status?->value,
                 'q' => $request->validated('q'),
+                'contra_governo' => $againstGovernment ? '1' : null,
             ],
         ]);
     }
