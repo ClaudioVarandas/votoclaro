@@ -420,6 +420,95 @@ class BudgetPagesTest extends TestCase
             ->assertSee(route('budgets.proposals.index', ['year' => 2027, 'contra_governo' => 1]), false);
     }
 
+    public function test_the_budget_page_shows_how_often_each_pair_of_parties_voted_alike(): void
+    {
+        $this->agreementProposals();
+
+        $this->get(route('budgets.show', 2027))
+            ->assertOk()
+            ->assertSee(__('ui.budget.agreement.title'))
+            ->assertViewHas('agreement', function (array $agreement): bool {
+                $pairs = $agreement['pairs'];
+
+                return $agreement['parties'] === ['PSD', 'CH', 'PS', 'CDS-PP']
+                    && $pairs['PSD']['CDS-PP'] === ['voted' => 23, 'same' => 23, 'rate' => 100.0]
+                    && $pairs['PS']['CH'] === ['voted' => 21, 'same' => 11, 'rate' => 52.4]
+                    && $pairs['CH']['PS'] === $pairs['PS']['CH']
+                    && $pairs['PSD']['PS'] === ['voted' => 22, 'same' => 0, 'rate' => 0.0];
+            })
+            ->assertSee(route('budgets.proposals.index', ['year' => 2027, 'divergem' => 'ps,ch']), false)
+            ->assertSee('PS e CH votaram igual em 11 das 21 propostas que ambos votaram');
+    }
+
+    public function test_absences_and_split_votes_are_left_out_of_the_agreement(): void
+    {
+        $this->agreementProposals();
+
+        $this->get(route('budgets.show', 2027))
+            ->assertViewHas('agreement', fn (array $agreement): bool => $agreement['pairs']['PSD']['CH']['voted'] === 21
+                && $agreement['pairs']['PSD']['PS']['voted'] === 22);
+    }
+
+    public function test_a_pair_that_shared_few_votes_has_no_agreement_rate(): void
+    {
+        foreach (range(1, 19) as $number) {
+            $this->proposal("{$number}C", positions: ['PS' => 'favor', 'BE' => 'favor']);
+        }
+
+        $this->get(route('budgets.show', 2027))
+            ->assertViewHas('agreement', fn (array $agreement): bool => $agreement['pairs']['PS']['BE'] === ['voted' => 19, 'same' => 19, 'rate' => null]);
+    }
+
+    public function test_the_matrix_filters_the_amendments_two_parties_voted_apart(): void
+    {
+        $this->agreementProposals();
+
+        $this->get(route('budgets.proposals.index', ['year' => 2027, 'divergem' => 'ps,ch']))
+            ->assertOk()
+            ->assertSee(__('ui.budget.matrix.voted_apart', ['first' => 'PS', 'second' => 'CH']))
+            ->assertSee('name="divergem" value="ps,ch"', false)
+            ->assertViewHas('proposals', fn ($proposals): bool => $proposals->total() === 10 && ! $proposals->pluck('number')->contains('A3C'));
+
+        $this->get(route('budgets.proposals.index', ['year' => 2027, 'divergem' => 'psd,ch']))
+            ->assertViewHas('proposals', fn ($proposals): bool => $proposals->total() === 11
+                && $proposals->pluck('number')->contains('A3C')
+                && ! $proposals->pluck('number')->contains('A1C')
+                && ! $proposals->pluck('number')->contains('A2C'));
+    }
+
+    public function test_the_voted_apart_filter_is_ignored_unless_it_names_two_parties_that_voted(): void
+    {
+        $this->agreementProposals();
+        $total = BudgetProposal::query()->count();
+
+        foreach (['ps', 'ps,ps', 'ps,xyz', 'ps,ch,psd', ','] as $named) {
+            $this->get(route('budgets.proposals.index', ['year' => 2027, 'divergem' => $named]))
+                ->assertOk()
+                ->assertDontSee('name="divergem"', false)
+                ->assertViewHas('proposals', fn ($proposals): bool => $proposals->total() === $total);
+        }
+    }
+
+    /**
+     * Twenty amendments the PSD and the CDS-PP voted for and the PS against, the CH voting with
+     * the PS on half of them; then one the CH missed (A1C), one the CH voted in parts apart
+     * (A2C), and one where the CH abstained against the PSD's vote (A3C), the PS with the CH.
+     */
+    private function agreementProposals(): void
+    {
+        foreach (range(1, 20) as $number) {
+            $this->proposal("{$number}C", positions: ['PSD' => 'favor', 'CDS-PP' => 'favor', 'PS' => 'contra', 'CH' => $number <= 10 ? 'contra' : 'favor']);
+        }
+
+        $this->proposal('A1C', positions: ['PSD' => 'favor', 'CDS-PP' => 'favor', 'PS' => 'contra', 'CH' => 'ausente']);
+
+        $split = $this->proposal('A2C', status: BudgetProposalStatus::PartiallyApproved);
+        $this->vote($split, 1, BudgetVoteStage::Committee, ['PSD' => 'favor', 'CDS-PP' => 'favor', 'CH' => 'favor']);
+        $this->vote($split, 2, BudgetVoteStage::Committee, ['PSD' => 'favor', 'CDS-PP' => 'favor', 'CH' => 'contra']);
+
+        $this->proposal('A3C', positions: ['PSD' => 'favor', 'CDS-PP' => 'favor', 'PS' => 'abstencao', 'CH' => 'abstencao']);
+    }
+
     /**
      * @param  list<string>  $acronyms
      */

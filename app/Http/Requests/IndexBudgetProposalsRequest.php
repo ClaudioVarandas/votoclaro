@@ -24,6 +24,7 @@ class IndexBudgetProposalsRequest extends FormRequest
             'estado' => ['nullable', Rule::enum(BudgetProposalStatus::class)],
             'q' => ['nullable', 'string', 'max:100'],
             'contra_governo' => ['nullable', 'boolean'],
+            'divergem' => ['nullable', 'string', 'max:30'],
             'page' => ['nullable', 'integer', 'min:1'],
         ];
     }

@@ -37,6 +37,9 @@ class BudgetStatsService
 
     private const MOST_AMENDED_LISTED = 6;
 
+    /** A pair of parties gets an agreement rate once both voted at least this many amendments. */
+    private const MIN_VOTED_FOR_AGREEMENT = 20;
+
     /** The rows and party columns of the sample of the vote grid on the home page. */
     private const HIGHLIGHT_ROWS = 6;
 
@@ -157,6 +160,51 @@ class BudgetStatsService
                 })
                 ->values()
                 ->all();
+        });
+    }
+
+    /**
+     * How often each pair of parties voted the same way, over the amendments both voted in the
+     * vote that decided them. An absence or a split vote (the amendment voted in parts and the
+     * party not voting them all alike) leaves the amendment out for that party. The rate is null
+     * when a pair shared too few votes to say much, as a single-deputy group outside the committee.
+     *
+     * @return array{parties: list<string>, pairs: array<string, array<string, array{voted: int, same: int, rate: ?float}>>}
+     */
+    public function agreement(Budget $budget): array
+    {
+        return Cache::remember("budget.{$budget->id}.agreement", self::CACHE_TTL, function () use ($budget): array {
+            $cells = $this->matrix->cells(BudgetProposal::query()->where('budget_id', $budget->id));
+            $parties = $this->matrix->votingParties($cells, $this->partyOrder($budget)->all());
+            $counted = [BudgetVotePosition::Favor->value, BudgetVotePosition::Contra->value, BudgetVotePosition::Abstencao->value];
+            $pairs = [];
+
+            foreach ($parties as $first) {
+                foreach ($parties as $second) {
+                    $pairs[$first][$second] = ['voted' => 0, 'same' => 0];
+                }
+            }
+
+            foreach ($cells as $row) {
+                $positions = array_filter($row, fn (string $position): bool => in_array($position, $counted, true));
+
+                foreach ($positions as $first => $position) {
+                    foreach ($positions as $second => $other) {
+                        if (isset($pairs[$first][$second])) {
+                            $pairs[$first][$second]['voted']++;
+                            $pairs[$first][$second]['same'] += (int) ($position === $other);
+                        }
+                    }
+                }
+            }
+
+            return [
+                'parties' => $parties,
+                'pairs' => array_map(fn (array $row): array => array_map(fn (array $pair): array => [
+                    ...$pair,
+                    'rate' => $pair['voted'] >= self::MIN_VOTED_FOR_AGREEMENT ? round($pair['same'] / $pair['voted'] * 100, 1) : null,
+                ], $row), $pairs),
+            ];
         });
     }
 

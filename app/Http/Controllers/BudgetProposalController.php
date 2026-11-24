@@ -38,6 +38,7 @@ class BudgetProposalController extends Controller
         $status = BudgetProposalStatus::tryFrom((string) $request->validated('estado'));
         $government = $this->budgetStats->governmentOf($budget);
         $againstGovernment = $government !== [] && $request->boolean('contra_governo');
+        $apart = $this->votedApartPair($budget, (string) $request->validated('divergem'));
 
         $filtered = BudgetProposal::query()
             ->where('budget_id', $budget->id)
@@ -46,6 +47,7 @@ class BudgetProposalController extends Controller
             ->when($party, fn ($query) => $query->whereRelation('parties', 'acronym', $party))
             ->when($status, fn ($query) => $query->where('status', $status))
             ->when($againstGovernment, fn ($query) => $query->approvedAgainstGovernment($government))
+            ->when($apart, fn ($query) => $query->votedApart(...$apart))
             ->when($request->validated('q'), fn ($query, string $terms) => $query->search($terms));
 
         $proposals = (clone $filtered)
@@ -81,7 +83,9 @@ class BudgetProposalController extends Controller
                 'estado' => $status?->value,
                 'q' => $request->validated('q'),
                 'contra_governo' => $againstGovernment ? '1' : null,
+                'divergem' => $apart ? strtolower(implode(',', $apart)) : null,
             ],
+            'apart' => $apart,
         ]);
     }
 
@@ -96,6 +100,23 @@ class BudgetProposalController extends Controller
             'proposal' => $proposal,
             'parties' => $this->budgetStats->partyOrder($budget)->all(),
         ]);
+    }
+
+    /**
+     * The two parties named in "divergem" (as "ps,ch"), when both voted this budget and they
+     * differ; null otherwise, which leaves the filter off.
+     *
+     * @return array{0: string, 1: string}|null
+     */
+    private function votedApartPair(Budget $budget, string $named): ?array
+    {
+        $pair = array_values(array_unique(array_filter(array_map(fn (string $acronym): string => strtoupper(trim($acronym)), explode(',', $named)))));
+
+        if (count($pair) !== 2 || array_diff($pair, $this->budgetStats->agreement($budget)['parties']) !== []) {
+            return null;
+        }
+
+        return [$pair[0], $pair[1]];
     }
 
     /**

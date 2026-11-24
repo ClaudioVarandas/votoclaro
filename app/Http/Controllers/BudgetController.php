@@ -38,6 +38,7 @@ class BudgetController extends Controller
             'overview' => $this->budgetStats->overview($budget),
             'government' => $this->budgetStats->governmentOf($budget),
             'parties' => $this->budgetStats->parties($budget),
+            'agreement' => $this->budgetStats->agreement($budget),
             'themes' => $this->budgetStats->themes($budget),
             'topics' => $this->budgetStats->topics($budget),
             'articles' => $this->budgetStats->articles($budget),

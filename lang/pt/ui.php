@@ -337,6 +337,15 @@ return [
             'empty' => 'Ainda não há propostas suficientes para encontrar assuntos.',
             'no_divided' => 'Ainda há poucas propostas votadas para medir a divisão.',
         ],
+        'agreement' => [
+            'title' => 'Quem vota com quem',
+            'intro' => 'Em quantas das propostas que ambos votaram dois partidos votaram da mesma forma.',
+            'cell' => '{0} :first e :second não votaram as mesmas propostas|{1} :first e :second votaram igual em :same da única proposta que ambos votaram|[2,*] :first e :second votaram igual em :same das :count propostas que ambos votaram',
+            'pick' => 'Partido',
+            'legend_low' => 'Menos',
+            'legend_high' => 'Mais',
+            'how' => 'Conta a votação decisiva de cada proposta. Ficam de fora as ausências e as propostas votadas por partes em que o partido não votou todas as partes da mesma forma. Carregue num número para ver as propostas em que votaram de forma diferente.',
+        ],
         'matrix' => [
             'title' => 'Propostas de alteração',
             'search' => 'Pesquisar nas propostas',
@@ -348,6 +357,7 @@ return [
             'status' => 'Estado',
             'all_statuses' => 'Todos os estados',
             'against_government' => 'Só as aprovadas contra o Governo (:parties)',
+            'voted_apart' => 'Só as que :first e :second votaram de forma diferente',
             'filter' => 'Filtrar',
             'clear' => 'Limpar',
             'results' => '{0} Nenhuma proposta|{1} 1 proposta|[2,*] :count propostas',

@@ -122,6 +122,8 @@
             </div>
         </x-section-panel>
 
+        <x-budget-agreement-matrix :budget="$budget" :agreement="$agreement" />
+
         {{-- The Government's bill --}}
         @if ($articles['total'] > 0)
             <x-section-panel id="articles-title" :title="__('ui.budget.articles.section_title')" :intro="__('ui.budget.articles.section_intro')" icon="building-library" accent="indigo">

@@ -4,12 +4,14 @@ namespace App\Models;
 
 use App\Enums\BudgetProposalStatus;
 use App\Enums\BudgetVotePosition;
+use App\Models\BudgetVotePosition as PartyPosition;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 
 class BudgetProposal extends Model
 {
@@ -123,6 +125,32 @@ class BudgetProposal extends Model
                 ->whereNull('deputy')
                 ->whereIn('party', $governmentAcronyms)
                 ->where('position', BudgetVotePosition::Contra), '=', count($governmentAcronyms)));
+    }
+
+    /**
+     * The amendments two parties voted differently in the vote that decided them, counted the way
+     * the agreement between parties counts them: each party's cell is its position, split when it
+     * did not vote all the parts alike; a split cell or an absence leaves the amendment out.
+     */
+    public function scopeVotedApart(Builder $query, string $first, string $second): void
+    {
+        $cell = fn (string $party): Builder => PartyPosition::query()
+            ->join('budget_votes', 'budget_votes.id', '=', 'budget_vote_positions.budget_vote_id')
+            ->where('budget_votes.is_final', true)
+            ->whereNotNull('budget_votes.budget_proposal_id')
+            ->whereNull('budget_vote_positions.deputy')
+            ->where('budget_vote_positions.party', $party)
+            ->groupBy('budget_votes.budget_proposal_id')
+            ->havingRaw('count(distinct budget_vote_positions.position) = 1')
+            ->selectRaw('budget_votes.budget_proposal_id, max(budget_vote_positions.position) as position');
+
+        $query->whereIn('budget_proposals.id', fn (QueryBuilder $apart) => $apart
+            ->fromSub($cell($first), 'first_party')
+            ->joinSub($cell($second), 'second_party', 'second_party.budget_proposal_id', '=', 'first_party.budget_proposal_id')
+            ->whereColumn('first_party.position', '!=', 'second_party.position')
+            ->where('first_party.position', '!=', BudgetVotePosition::Ausente->value)
+            ->where('second_party.position', '!=', BudgetVotePosition::Ausente->value)
+            ->select('first_party.budget_proposal_id'));
     }
 
     /**

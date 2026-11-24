@@ -81,6 +81,12 @@
                     {{ __('ui.budget.matrix.against_government', ['parties' => implode(', ', $government)]) }}
                 </label>
             @endif
+            @if ($apart)
+                <label class="flex items-center gap-2 text-sm text-sand-700 sm:col-span-2 lg:col-span-5 dark:text-sand-300">
+                    <input type="checkbox" name="divergem" value="{{ $filters['divergem'] }}" checked class="size-4 rounded border-sand-300 text-republic-600 focus:ring-republic-500 dark:border-sand-600 dark:bg-sand-950">
+                    {{ __('ui.budget.matrix.voted_apart', ['first' => $apart[0], 'second' => $apart[1]]) }}
+                </label>
+            @endif
             <div class="flex items-center gap-3 sm:col-span-2 lg:col-span-5">
                 <button type="submit" class="rounded-xl bg-republic-600 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-republic-700 dark:bg-republic-500 dark:hover:bg-republic-600">{{ __('ui.budget.matrix.filter') }}</button>
                 @if (array_filter($filters))
