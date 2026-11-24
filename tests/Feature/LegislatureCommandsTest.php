@@ -7,6 +7,7 @@ use App\Models\Legislature;
 use App\Models\Party;
 use App\Services\ParliamentInitiativeSyncService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Exceptions;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Sleep;
@@ -75,6 +76,26 @@ class LegislatureCommandsTest extends TestCase
             ->assertSuccessful();
 
         $this->assertSame(['CDS-PP', 'PSD'], $legislature->governmentAcronyms());
+    }
+
+    public function test_register_clears_the_cached_figures_counted_against_the_government(): void
+    {
+        Legislature::factory()->xvii()->withParties()->create(['base_info_url' => null]);
+        Cache::put('budget.1.overview', ['against_government' => null]);
+
+        $this->artisan('ar:legislature:register', ['sigla' => 'XVII', '--government' => 'PSD,CDS-PP'])->assertSuccessful();
+
+        $this->assertFalse(Cache::has('budget.1.overview'));
+    }
+
+    public function test_register_keeps_the_cache_when_the_government_is_refused(): void
+    {
+        Legislature::factory()->xvii()->withParties()->create(['base_info_url' => null]);
+        Cache::put('budget.1.overview', ['against_government' => null]);
+
+        $this->artisan('ar:legislature:register', ['sigla' => 'XVII', '--government' => 'NOPE'])->assertFailed();
+
+        $this->assertTrue(Cache::has('budget.1.overview'));
     }
 
     public function test_register_replaces_the_government_and_keeps_the_other_parties(): void

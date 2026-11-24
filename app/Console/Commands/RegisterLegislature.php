@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Models\Legislature;
 use App\Models\Party;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Artisan;
 use InvalidArgumentException;
 
 class RegisterLegislature extends Command
@@ -58,6 +59,7 @@ class RegisterLegislature extends Command
     /**
      * Replaces the government of the legislature with the parties named, after the base
      * information has attached the legislature's parties. Nothing changes when one is unknown.
+     * The budget figures counted against the government are cached, so the cache is cleared.
      */
     private function markGovernment(Legislature $legislature, string $acronyms): bool
     {
@@ -81,6 +83,8 @@ class RegisterLegislature extends Command
         }
 
         $legislature->parties()->updateExistingPivot($governmentIds, ['is_government' => true]);
+
+        Artisan::call('cache:clear');
 
         $this->info("Government of the {$legislature->sigla} legislature: {$named->implode(', ')}.");
 
