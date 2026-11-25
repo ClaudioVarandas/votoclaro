@@ -35,7 +35,7 @@
                 <select id="estado" name="estado" class="{{ $field }}">
                     <option value="">{{ __('ui.budget.matrix.all_statuses') }}</option>
                     @foreach ($statuses as $status)
-                        <option value="{{ $status->value }}" @selected($filters['estado'] === $status->value)>{{ $status->articleLabel() }}</option>
+                        <option value="{{ $status->value }}" @selected($filters['estado'] === $status->value)>{{ $status->articleLabel($closed) }}</option>
                     @endforeach
                 </select>
             </div>
@@ -61,7 +61,7 @@
                 <p class="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200">{{ __('ui.budget.articles.not_voted_yet') }}</p>
             @endif
 
-            <x-budget-vote-matrix :budget="$budget" :proposals="$articles" :parties="$parties" :cells="$cells" :totals="$totals" for-articles />
+            <x-budget-vote-matrix :budget="$budget" :proposals="$articles" :parties="$parties" :cells="$cells" :totals="$totals" :closed="$closed" for-articles />
 
             <p class="text-xs text-sand-500 dark:text-sand-400">{{ __('ui.budget.articles.legend') }}</p>
 

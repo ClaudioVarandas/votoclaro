@@ -5,12 +5,14 @@ namespace Tests\Feature;
 use App\Enums\BudgetProposalStatus;
 use App\Enums\BudgetVoteStage;
 use App\Models\Budget;
+use App\Models\BudgetArticle;
 use App\Models\BudgetProposal;
 use App\Models\BudgetTheme;
 use App\Models\BudgetVote;
 use App\Models\Initiative;
 use App\Models\Legislature;
 use App\Models\Party;
+use App\Models\Vote;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -606,6 +608,86 @@ class BudgetPagesTest extends TestCase
         $this->budget = $budget;
 
         return $previous;
+    }
+
+    public function test_after_the_final_vote_an_amendment_left_pending_has_no_published_vote(): void
+    {
+        $this->proposal('1C', status: BudgetProposalStatus::Approved, positions: ['PS' => 'favor']);
+        $pending = $this->proposal('1336C', ['BE'], BudgetProposalStatus::Pending);
+        $this->closeBudget();
+
+        $this->get(route('budgets.index'))
+            ->assertSee(__('ui.budget.vote_closed'))
+            ->assertDontSee(__('ui.budget.in_progress'))
+            ->assertSee(__('ui.budget.overview.unpublished'))
+            ->assertDontSee(__('ui.budget.overview.pending'));
+
+        $this->get(route('budgets.show', 2027))
+            ->assertSee(__('ui.budget.overview.unpublished'))
+            ->assertSee(trans_choice('ui.budget.unpublished_note', 1, ['count' => 1]))
+            ->assertDontSee(__('ui.budget.voting_progress', ['voted' => 1, 'total' => 2]));
+
+        $this->get(route('budgets.proposals.index', 2027))
+            ->assertSee(__('ui.budget.status.unpublished'))
+            ->assertDontSee(__('ui.budget.status.pending'));
+
+        $this->get(route('budgets.proposals.show', ['year' => 2027, 'proposal' => $pending->slug]))
+            ->assertSee(__('ui.budget.status.unpublished'))
+            ->assertSee(__('ui.budget.proposal.no_votes_closed'));
+    }
+
+    public function test_while_the_vote_goes_on_an_amendment_is_still_waiting_for_it(): void
+    {
+        $this->proposal('1C', status: BudgetProposalStatus::Approved, positions: ['PS' => 'favor']);
+        $pending = $this->proposal('2C', status: BudgetProposalStatus::Pending);
+
+        $this->get(route('budgets.index'))
+            ->assertSee(__('ui.budget.in_progress'))
+            ->assertDontSee(__('ui.budget.vote_closed'))
+            ->assertSee(__('ui.budget.overview.pending'));
+
+        $this->get(route('budgets.show', 2027))
+            ->assertSee(__('ui.budget.voting_progress', ['voted' => 1, 'total' => 2]))
+            ->assertDontSee(__('ui.budget.overview.unpublished'));
+
+        $this->get(route('budgets.proposals.show', ['year' => 2027, 'proposal' => $pending->slug]))
+            ->assertSee(__('ui.budget.status.pending'))
+            ->assertSee(__('ui.budget.proposal.no_votes'));
+    }
+
+    public function test_after_the_final_vote_the_page_says_the_articles_votes_are_not_published_yet(): void
+    {
+        $this->proposal('1C', status: BudgetProposalStatus::Approved, positions: ['PS' => 'favor']);
+        $article = BudgetArticle::factory()->create(['budget_id' => $this->budget->id, 'status' => BudgetProposalStatus::Pending]);
+        $this->closeBudget();
+
+        $this->get(route('budgets.show', 2027))
+            ->assertSee(__('ui.budget.articles.unpublished_notice'))
+            ->assertSee(__('ui.budget.articles.stat_unpublished'));
+
+        $this->get(route('budgets.articles.show', ['year' => 2027, 'article' => $article->slug]))
+            ->assertSee(__('ui.budget.article_status.unpublished'))
+            ->assertSee(__('ui.budget.articles.no_votes_closed'));
+    }
+
+    public function test_the_articles_notice_is_left_out_while_the_vote_goes_on(): void
+    {
+        $this->proposal('1C', status: BudgetProposalStatus::Pending);
+        BudgetArticle::factory()->create(['budget_id' => $this->budget->id, 'status' => BudgetProposalStatus::Pending]);
+
+        $this->get(route('budgets.show', 2027))
+            ->assertDontSee(__('ui.budget.articles.unpublished_notice'))
+            ->assertSee(__('ui.budget.articles.stat_pending'));
+    }
+
+    /**
+     * The bill of the budget passes its final global vote.
+     */
+    private function closeBudget(): void
+    {
+        $initiative = Initiative::factory()->create(['legislature_id' => $this->current->id]);
+        $this->budget->update(['initiative_id' => $initiative->id]);
+        Vote::factory()->create(['initiative_id' => $initiative->id, 'phase' => Vote::PHASE_FINAL_GLOBAL, 'result' => 'Aprovado', 'date' => '2026-11-24']);
     }
 
     /**

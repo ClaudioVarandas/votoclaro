@@ -50,6 +50,7 @@ class BudgetArticleController extends Controller
             'totals' => $matrix->totals($cells, $parties),
             'parties' => $parties,
             'statuses' => BudgetProposalStatus::listable($presentStatuses),
+            'closed' => $this->budgetStats->isClosed($budget),
             'filters' => [
                 'estado' => $status?->value,
                 'lei' => $amendsLaw,
@@ -70,6 +71,7 @@ class BudgetArticleController extends Controller
         return view('pages.budgets.articles.show', [
             'budget' => $budget,
             'article' => $article,
+            'closed' => $this->budgetStats->isClosed($budget),
             'parties' => $this->budgetStats->partyOrder($budget)->all(),
         ]);
     }

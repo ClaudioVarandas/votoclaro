@@ -22,9 +22,10 @@ class BudgetController extends Controller
             ->get();
 
         return view('pages.budgets.index', [
-            'budgets' => $budgets->map(fn (Budget $budget): array => [
+            'budgets' => $budgets->load('initiative')->map(fn (Budget $budget): array => [
                 'budget' => $budget,
                 'overview' => $this->budgetStats->overview($budget),
+                'closed' => $this->budgetStats->isClosed($budget),
             ]),
         ]);
     }
@@ -37,6 +38,7 @@ class BudgetController extends Controller
         return view('pages.budgets.show', [
             'budget' => $budget,
             'overview' => $this->budgetStats->overview($budget),
+            'closed' => $this->budgetStats->isClosed($budget),
             'government' => $this->budgetStats->governmentOf($budget),
             'parties' => $this->budgetStats->parties($budget),
             'agreement' => $this->budgetStats->agreement($budget),

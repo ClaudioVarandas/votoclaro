@@ -27,7 +27,7 @@
                 @endif
             </p>
             <h1 class="font-serif text-2xl font-bold leading-tight tracking-tight text-sand-900 sm:text-3xl dark:text-sand-100">{{ $proposal->subject() }}</h1>
-            <x-budget-status-badge :status="$proposal->status" class="text-sm" />
+            <x-budget-status-badge :status="$proposal->status" :closed="$closed" class="text-sm" />
         </div>
 
         @if ($proposal->articles->isNotEmpty())
@@ -63,7 +63,7 @@
         <section class="space-y-4" aria-labelledby="votes-title">
             <h2 id="votes-title" class="font-serif text-xl font-bold text-sand-900 dark:text-sand-100">{{ __('ui.budget.proposal.votes') }}</h2>
 
-            <x-budget-vote-list :votes="$proposal->votes" :parties="$parties" :empty="__('ui.budget.proposal.no_votes')" />
+            <x-budget-vote-list :votes="$proposal->votes" :parties="$parties" :empty="__($closed ? 'ui.budget.proposal.no_votes_closed' : 'ui.budget.proposal.no_votes')" />
         </section>
 
         @if ($proposal->text)

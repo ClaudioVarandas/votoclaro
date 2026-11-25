@@ -22,7 +22,7 @@
         <div class="space-y-3">
             <p class="text-sm font-semibold text-sky-700 dark:text-sky-400">{{ __('ui.budget.articles.eyebrow', ['number' => $article->number]) }}</p>
             <h1 class="font-serif text-2xl font-bold leading-tight tracking-tight text-sand-900 sm:text-3xl dark:text-sand-100">{{ $article->title ?? $article->number }}</h1>
-            <x-budget-status-badge :status="$article->status" article class="text-sm" />
+            <x-budget-status-badge :status="$article->status" article :closed="$closed" class="text-sm" />
         </div>
 
         @if ($article->amendsLaw())
@@ -37,7 +37,7 @@
 
         <section class="space-y-4" aria-labelledby="votes-title">
             <h2 id="votes-title" class="font-serif text-xl font-bold text-sand-900 dark:text-sand-100">{{ __('ui.budget.proposal.votes') }}</h2>
-            <x-budget-vote-list :votes="$article->votes" :parties="$parties" :empty="__('ui.budget.articles.no_votes')" article />
+            <x-budget-vote-list :votes="$article->votes" :parties="$parties" :empty="__($closed ? 'ui.budget.articles.no_votes_closed' : 'ui.budget.articles.no_votes')" article />
         </section>
 
         <section class="space-y-4" aria-labelledby="amendments-title">
@@ -52,7 +52,7 @@
                             <a href="{{ $legislatureContext->route('budgets.proposals.show', ['year' => $budget->year, 'proposal' => $proposal->slug]) }}" class="group flex flex-wrap items-center gap-x-3 gap-y-1 px-4 py-3 transition-colors hover:bg-sand-50 dark:hover:bg-sand-950">
                                 <span class="w-24 shrink-0 text-xs font-semibold text-sand-500 dark:text-sand-400">{{ $proposal->parties->pluck('acronym')->implode(', ') ?: $proposal->proposer_label }} · <span class="font-mono">{{ $proposal->number }}</span></span>
                                 <span class="min-w-0 flex-1 text-sm text-sand-900 group-hover:text-republic-700 group-hover:underline dark:text-sand-100 dark:group-hover:text-republic-400">{{ $proposal->subject() }}</span>
-                                <x-budget-status-badge :status="$proposal->status" />
+                                <x-budget-status-badge :status="$proposal->status" :closed="$closed" />
                             </a>
                         </li>
                     @endforeach

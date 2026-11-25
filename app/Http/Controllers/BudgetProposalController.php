@@ -76,6 +76,7 @@ class BudgetProposalController extends Controller
                 : $this->legislatureContext->route('budgets.proposals.index', ['year' => $budget->year], $budget->legislature),
             'proposingParties' => collect($this->budgetStats->parties($budget))->where('proposed', '>', 0)->pluck('acronym')->all(),
             'statuses' => BudgetProposalStatus::listable($presentStatuses),
+            'closed' => $this->budgetStats->isClosed($budget),
             'government' => $government,
             'filters' => [
                 'tema' => $theme?->slug,
@@ -98,6 +99,7 @@ class BudgetProposalController extends Controller
         return view('pages.budgets.proposals.show', [
             'budget' => $budget,
             'proposal' => $proposal,
+            'closed' => $this->budgetStats->isClosed($budget),
             'parties' => $this->budgetStats->partyOrder($budget)->all(),
         ]);
     }

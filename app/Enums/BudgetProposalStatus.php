@@ -53,22 +53,30 @@ enum BudgetProposalStatus: string
         return $this === self::Approved || $this === self::PartiallyApproved;
     }
 
-    public function label(): string
+    /**
+     * Once the budget had its final vote, an amendment still pending was never voted, or its
+     * vote was never published: "Por votar" would mislead.
+     */
+    public function label(bool $voteClosed = false): string
     {
-        return __('ui.budget.status.'.$this->value);
+        return __('ui.budget.status.'.$this->stateKey($voteClosed));
     }
 
     /**
      * The same state said of an article of the Government's bill, which is masculine in
      * Portuguese ("Aprovado" where an amendment is "Aprovada").
      */
-    public function articleLabel(): string
+    public function articleLabel(bool $voteClosed = false): string
     {
-        return __('ui.budget.article_status.'.$this->value);
+        return __('ui.budget.article_status.'.$this->stateKey($voteClosed));
     }
 
-    public function color(): string
+    public function color(bool $voteClosed = false): string
     {
+        if ($voteClosed && $this === self::Pending) {
+            return 'bg-sand-100 text-sand-600 dark:bg-sand-900 dark:text-sand-400';
+        }
+
         return match ($this) {
             self::Approved => 'bg-republic-100 text-republic-800 dark:bg-republic-950 dark:text-republic-300',
             self::PartiallyApproved => 'bg-republic-50 text-republic-700 dark:bg-republic-950 dark:text-republic-400',
@@ -76,5 +84,10 @@ enum BudgetProposalStatus: string
             self::Pending => 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300',
             self::Withdrawn, self::Replaced, self::NotAdmitted, self::Prejudiced => 'bg-sand-100 text-sand-600 dark:bg-sand-900 dark:text-sand-400',
         };
+    }
+
+    private function stateKey(bool $voteClosed): string
+    {
+        return $voteClosed && $this === self::Pending ? 'unpublished' : $this->value;
     }
 }

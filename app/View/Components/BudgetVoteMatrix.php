@@ -34,6 +34,7 @@ class BudgetVoteMatrix extends Component
         public array $cells,
         public array $totals = [],
         public bool $forArticles = false,
+        public bool $closed = false,
     ) {}
 
     public function cell(BudgetProposal|BudgetArticle $proposal, string $party): ?string

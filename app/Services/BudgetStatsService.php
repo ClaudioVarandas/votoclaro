@@ -264,6 +264,11 @@ class BudgetStatsService
         };
     }
 
+    public function isClosed(Budget $budget): bool
+    {
+        return $this->stage($budget) === self::STAGE_CLOSED;
+    }
+
     /**
      * The decisive positions on the amendments voted last, one row each, in the Parliament's
      * order of the parties.

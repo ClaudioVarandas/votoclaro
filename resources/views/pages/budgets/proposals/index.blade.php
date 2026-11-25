@@ -71,7 +71,7 @@
                 <select id="estado" name="estado" class="{{ $field }}">
                     <option value="">{{ __('ui.budget.matrix.all_statuses') }}</option>
                     @foreach ($statuses as $status)
-                        <option value="{{ $status->value }}" @selected($filters['estado'] === $status->value)>{{ $status->label() }}</option>
+                        <option value="{{ $status->value }}" @selected($filters['estado'] === $status->value)>{{ $status->label($closed) }}</option>
                     @endforeach
                 </select>
             </div>
@@ -99,7 +99,7 @@
         @if ($proposals->isEmpty())
             <p class="py-12 text-center text-sm text-sand-500 dark:text-sand-400">{{ __('ui.budget.matrix.no_results') }}</p>
         @else
-            <x-budget-vote-matrix :budget="$budget" :proposals="$proposals" :parties="$parties" :cells="$cells" :totals="$totals" />
+            <x-budget-vote-matrix :budget="$budget" :proposals="$proposals" :parties="$parties" :cells="$cells" :totals="$totals" :closed="$closed" />
 
             <p class="text-xs text-sand-500 dark:text-sand-400">{{ __('ui.budget.matrix.legend') }}</p>
 

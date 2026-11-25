@@ -25,7 +25,9 @@
                             <h2 class="font-serif text-xl font-bold text-sand-900 group-hover:text-republic-700 dark:text-sand-100 dark:group-hover:text-republic-400">
                                 {{ __('ui.budget.name', ['year' => $item['budget']->year]) }}
                             </h2>
-                            @if ($item['overview']['pending'] > 0)
+                            @if ($item['closed'])
+                                <span class="shrink-0 rounded-full bg-republic-100 px-2 py-0.5 text-xs font-medium text-republic-800 dark:bg-republic-950 dark:text-republic-300">{{ __('ui.budget.vote_closed') }}</span>
+                            @else
                                 <span class="shrink-0 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-950 dark:text-amber-300">{{ __('ui.budget.in_progress') }}</span>
                             @endif
                         </div>
@@ -34,7 +36,7 @@
                         </p>
                         <dl class="mt-4 grid grid-cols-3 gap-2 text-center">
                             @foreach (['approved', 'rejected', 'pending'] as $key)
-                                <x-budget-outcome-stat compact :outcome="$key" :label="__('ui.budget.overview.' . $key)" :value="$item['overview'][$key]" />
+                                <x-budget-outcome-stat compact :outcome="$key" :label="__('ui.budget.overview.' . ($key === 'pending' && $item['closed'] ? 'unpublished' : $key))" :value="$item['overview'][$key]" />
                             @endforeach
                         </dl>
                         <p class="mt-4 flex items-center justify-between border-t border-sand-100 pt-4 text-sm font-semibold text-republic-700 dark:border-sand-800 dark:text-republic-400">

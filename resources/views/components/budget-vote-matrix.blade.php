@@ -60,7 +60,7 @@
                                     @endif
                                 </span>
                                 <span class="mt-0.5 line-clamp-2 text-sand-900 group-hover:text-republic-700 group-hover:underline dark:text-sand-100 dark:group-hover:text-republic-400">{{ $rowLabel($proposal) }}</span>
-                                <x-budget-status-badge :status="$proposal->status" :article="$forArticles" class="mt-1" />
+                                <x-budget-status-badge :status="$proposal->status" :article="$forArticles" :closed="$closed" class="mt-1" />
                             </a>
                         </th>
                         @foreach ($parties as $party)

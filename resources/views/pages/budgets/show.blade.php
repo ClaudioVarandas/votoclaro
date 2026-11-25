@@ -30,10 +30,12 @@
         <section class="space-y-3">
             <dl class="grid grid-cols-2 gap-4 lg:grid-cols-4">
                 @foreach (['total' => 'proposals', 'approved' => 'approved', 'rejected' => 'rejected', 'pending' => 'pending'] as $key => $outcome)
-                    <x-budget-outcome-stat :outcome="$outcome" :label="__('ui.budget.overview.' . $outcome)" :value="$overview[$key]" />
+                    <x-budget-outcome-stat :outcome="$outcome" :label="__('ui.budget.overview.' . ($outcome === 'pending' && $closed ? 'unpublished' : $outcome))" :value="$overview[$key]" />
                 @endforeach
             </dl>
-            @if ($overview['pending'] > 0)
+            @if ($overview['pending'] > 0 && $closed)
+                <p class="text-sm text-sand-500 dark:text-sand-400">{{ trans_choice('ui.budget.unpublished_note', $overview['pending'], ['count' => number_format($overview['pending'], 0, ',', '.')]) }}</p>
+            @elseif ($overview['pending'] > 0)
                 <p class="text-sm text-sand-500 dark:text-sand-400">{{ __('ui.budget.voting_progress', ['voted' => number_format($overview['voted'], 0, ',', '.'), 'total' => number_format($overview['total'], 0, ',', '.')]) }}</p>
             @endif
             @if ($overview['against_government'])
@@ -130,9 +132,12 @@
         @if ($articles['total'] > 0)
             <x-section-panel id="articles-title" :title="__('ui.budget.articles.section_title')" :intro="__('ui.budget.articles.section_intro')" icon="building-library" accent="indigo">
                 <div class="space-y-6">
+                    @if ($closed && $articles['voted'] === 0)
+                        <p class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950/60 dark:text-amber-200">{{ __('ui.budget.articles.unpublished_notice') }}</p>
+                    @endif
                     <dl class="grid grid-cols-2 gap-3 lg:grid-cols-4">
                         @foreach (['total' => 'proposals', 'approved' => 'approved', 'pending' => 'pending'] as $key => $outcome)
-                            <x-budget-outcome-stat compact :outcome="$outcome" :label="__('ui.budget.articles.stat_' . $key)" :value="$articles[$key]" />
+                            <x-budget-outcome-stat compact :outcome="$outcome" :label="__('ui.budget.articles.stat_' . ($key === 'pending' && $closed ? 'unpublished' : $key))" :value="$articles[$key]" />
                         @endforeach
                         <x-budget-outcome-stat compact outcome="proposals" :label="__('ui.budget.articles.stat_voted')" :value="$articles['voted']" />
                     </dl>
